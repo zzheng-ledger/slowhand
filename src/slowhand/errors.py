@@ -1,0 +1,2 @@
+class SlowhandException(Exception):
+    pass

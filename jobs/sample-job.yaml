@@ -1,0 +1,36 @@
+name: Sample Job
+
+# TODO: params
+
+steps:
+  - name: Clone revault repo
+    id: revault_repo
+    uses: actions/git-clone
+    with:
+      repo-name: LedgerHQ/revault
+      fetch-depth: 0
+  - name: Clone sre-argocd repo
+    id: sre_argocd_repo
+    uses: actions/git-clone
+    with:
+      repo_name: LedgerHQ/sre-argocd
+      fetch_depth: 0
+  - name: Checkout new branch in sre-argocd
+    run: git checkout -b chore-deploy-revault-to-stg
+    working-dir: ${sre_argocd_repo.repo.local_dir}
+  - name: Patch argocd preset
+    run: SRE_ARGOCD_REPO_PATH="${sre_argocd_repo.repo.local_dir}" pnpm patch-argocd-preset
+    working-dir: ${revault_repo.repo.local_dir}
+  - name: Commit and push to sre-argocd
+    run: |
+      git add -A
+      git commit -m "chore: update revault preset"
+      git push --set-upstream origin chore-deploy-revault-to-stg
+    working-dir: ${sre_argocd_repo.repo.local_dir}
+  - name: Create a PR in sre-argocd
+    uses: actions/github-create-pr
+    with:
+      repo: LedgerHQ/sre-argocd
+      branch: chore-deploy-revault-to-stg
+      target: main
+      title: "chore: update revault preset"

@@ -1,0 +1,45 @@
+from textwrap import indent
+from rich import print as rprint
+import typer
+
+from slowhand.logging import configure_logging, get_logger
+from slowhand.models import load_job
+from slowhand.runner import run_job
+from slowhand.config import config
+from slowhand.tools import get_gh_info, get_git_info
+from slowhand.version import VERSION
+
+configure_logging()
+
+logger = get_logger(__name__)
+
+app = typer.Typer()
+
+
+@app.command("config")
+def manage_config(create: bool = False):
+    print(config.model_dump_json(indent=2))
+    if create:
+        pass
+
+
+@app.command()
+def info():
+    def print_info(title: str, content: str) -> None:
+        rprint(f"[bold green]{title}[/bold green]")
+        print(indent(content, "    "))
+        print()
+
+    print_info("slowhand", f"version {VERSION}")
+    print_info("git", get_git_info())
+    print_info("gh", get_gh_info())
+
+
+@app.command()
+def job(name: str, clean: bool = True):
+    job = load_job(name)
+    run_job(job, clean=clean)
+
+
+if __name__ == "__main__":
+    app()

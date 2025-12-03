@@ -1,0 +1,41 @@
+from typing import List, Literal, Union
+from pydantic import BaseModel, Field
+import yaml
+
+from slowhand.config import config
+from slowhand.errors import SlowhandException
+
+
+class BaseJob(BaseModel):
+    id: str | None = None
+    name: str
+
+
+class RunShell(BaseJob):
+    kind: Literal["RunShell"] = "RunShell"
+    run: str
+    working_dir: str | None = Field(None, alias="working-dir")
+
+
+class UseAction(BaseJob):
+    kind: Literal["UseAction"] = "UseAction"
+    uses: str
+    params: dict = Field(default_factory=dict, alias="with")
+
+
+JobStep = Union[UseAction, RunShell]
+
+
+class Job(BaseModel):
+    name: str
+    steps: List[JobStep]
+
+
+def load_job(name: str) -> Job:
+    for jobs_dir in config.jobs_dirs:
+        job_file = jobs_dir / f"{name}.yaml"
+        if job_file.is_file():
+            with job_file.open("r") as f:
+                job_data = yaml.safe_load(f)
+            return Job(**job_data)
+    raise SlowhandException(f"No job file found for: {name}")
