@@ -45,15 +45,10 @@ class Shell(Action):
     name = "shell"
 
     @override
-    def __init__(self, id: str | None) -> None:
-        super().__init__(id)
-
-    @override
     def run(self, params, *, context):
         params = ShellParams(**params)
         cwd = params.working_dir or context.run_dir
         output_filepath = context.run_dir / random_name("output")
         extra_env = {"OUTPUT": str(output_filepath)}
         run_shell_script(params.script, cwd=cwd, extra_env=extra_env)
-        output = _load_output_file(output_filepath)
-        context.save_output(self.id, output)
+        return _load_output_file(output_filepath)

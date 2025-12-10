@@ -6,18 +6,19 @@ from slowhand.config import config
 from slowhand.errors import SlowhandException
 
 
-class BaseJob(BaseModel):
+class BaseJobStep(BaseModel):
     id: str | None = None
     name: str
+    condition: str | None = Field(None, alias="if")
 
 
-class RunShell(BaseJob):
+class RunShell(BaseJobStep):
     kind: Literal["RunShell"] = "RunShell"
     run: str
     working_dir: str | None = Field(None, alias="working-dir")
 
 
-class UseAction(BaseJob):
+class UseAction(BaseJobStep):
     kind: Literal["UseAction"] = "UseAction"
     uses: str
     params: dict = Field(default_factory=dict, alias="with")

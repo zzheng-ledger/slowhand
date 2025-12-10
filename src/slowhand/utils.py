@@ -37,6 +37,14 @@ def run_command(
     extra_env: dict[str, str] | None = None,
 ) -> str:
     kwargs = _get_subprocess_kwargs(cwd=cwd, extra_env=extra_env)
+    logger.debug(
+        "Running command",
+        extra={
+            "command": " ".join(args),
+            "cwd": cwd,
+            "extra_env": extra_env,
+        },
+    )
     result = subprocess.run(
         list(args),
         capture_output=True,

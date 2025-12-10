@@ -33,20 +33,15 @@ class GitClone(Action):
     name = "git-clone"
 
     @override
-    def __init__(self, id: str | None) -> None:
-        super().__init__(id)
-
-    @override
     def run(self, params, *, context):
         params = GitCloneParams(**params)
         local_dir = str(context.run_dir / random_name(params.bare_name))
         run_command("git", "clone", params.github_url, local_dir, *params.git_opts)
         head_hash = run_command("git", "rev-parse", "HEAD", cwd=local_dir)
-        output = {
+        return {
             "repo": {
                 "local_dir": local_dir,
                 "head_hash": head_hash,
                 "head_hash_short": head_hash[:7],
             }
         }
-        context.save_output(self.id, output)

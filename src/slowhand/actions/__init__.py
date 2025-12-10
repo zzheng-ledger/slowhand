@@ -17,8 +17,8 @@ _BUILTIN_ACTIONS = {
 }
 
 
-def create_action(name: str, id: str | None) -> Action:
+def create_action(name: str) -> Action:
     action_class = _BUILTIN_ACTIONS.get(name)
     if action_class is None:
         raise SlowhandException(f"Cannot find action {name}")
-    return action_class(id)
+    return action_class()

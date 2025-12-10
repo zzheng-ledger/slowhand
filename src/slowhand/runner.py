@@ -1,43 +1,46 @@
 from slowhand.config import config
 from slowhand.errors import SlowhandException
-from slowhand.logging import get_logger, muted, primary
-from slowhand.actions import ActionParams, create_action
+from slowhand.expression import evaluate_condition
+from slowhand.logging import get_logger, Style
+from slowhand.actions import create_action
 from slowhand.models import Job
 from slowhand.context import Context
 
 logger = get_logger(__name__)
 
 
-def run_action(
-    name: str,
-    id: str | None,
-    *,
-    params: ActionParams | None = None,
-    context: Context,
-):
-    params = params or {}
-    action = create_action(name, id)
-    logger.info("● Running action: %s (%s)", primary(action.name), muted(action.id))
-    action.run(params, context=context)
-
-
 def run_job(job: Job, *, clean: bool = True) -> None:
     context = Context()
     try:
-        logger.info("○ Running job: %s", primary(job.name))
+        logger.info("» Running job: %s", Style.PRIMARY.format(job.name))
         for step in job.steps:
             if step.kind == "RunShell":
-                name = "actions/shell"
+                # Convert a `RunShell` step to an `actions/shell` action
+                action_name = "actions/shell"
                 params = {
                     "script": step.run,
                     "working-dir": step.working_dir,
                 }
             elif step.kind == "UseAction":
-                name = step.uses
+                action_name = step.uses
                 params = step.params
             else:
                 raise SlowhandException(f"Unknown step kind: {step.kind}")
-            run_action(name, step.id, params=context.resolve(params), context=context)
+
+            action = create_action(action_name)
+            params = context.resolve(params or {})
+            step_desc = (
+                f"{Style.PRIMARY.format(step.name)} "
+                f"({Style.MUTED.format(action_name)}), "
+                f"id={Style.MUTED.format(step.id)}"
+            )
+            if step.condition is None or evaluate_condition(step.condition, context=context):
+                logger.info("● Running step: %s", step_desc)
+                output = action.run(params, context=context)
+                if step.id and output:
+                    context.save_output(step.id, output)
+            else:
+                logger.info("○ Skipping step: %s", step_desc)
     except Exception as exc:
         logger.error("Job %s failed: %s", job.name, exc)
         if config.debug:

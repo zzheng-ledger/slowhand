@@ -39,7 +39,7 @@ class Context:
 
     def resolve(self, input: Any) -> Any:
         if isinstance(input, str):
-            repl = lambda m: self._resolve_variable(m.group(1))
+            repl = lambda m: self.resolve_variable(m.group(1))
             return VARIABLE_REGEX.sub(repl, input)
         if isinstance(input, dict):
             return dict((key, self.resolve(value)) for key, value in input.items())
@@ -47,12 +47,14 @@ class Context:
             return [self.resolve(item) for item in input]
         return input
 
-    def _resolve_variable(self, var_name: str) -> str:
+    def resolve_variable(self, var_name: str) -> str:
         current = self._outputs
         for token in var_name.split("."):
             if not isinstance(current, dict):
                 raise SlowhandException(f"Variable canont be resolved: {var_name}")
             current = current.get(token)
+            if current is None:
+                break
         if not isinstance(current, (str, bool, int, type(None))):
             raise SlowhandException(
                 f"Variable resolves to invalid type ({type(current).__name__}): {var_name}"

@@ -1,13 +1,24 @@
 import datetime
 import json
 import logging
+from enum import Enum
 from typing import Any
 from collections.abc import Mapping, Iterable
 from rich.logging import RichHandler
 
 from slowhand.config import config
 
-from .styling import muted
+
+class Style(Enum):
+    # See: https://rich.readthedocs.io/en/latest/appendix/colors.html
+    PRIMARY = "bold bright_cyan"
+    SECONDARY = "bright_blue"
+    MUTED = "grey50"
+    DANGER = "red1"
+    ALERT = "orange1"
+
+    def format(self, text: str) -> str:
+        return f"[{self.value}]{text}[/{self.value}]"
 
 
 def _to_json_value(value: Any) -> Any:
@@ -53,7 +64,7 @@ class ConsoleLogger:
 
     def debug(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)
-        self._logger.debug(muted(msg), *args, **kwargs)
+        self._logger.debug(Style.MUTED.format(msg), *args, **kwargs)
 
     def info(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)

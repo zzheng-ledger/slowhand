@@ -25,9 +25,9 @@ steps:
     run: |
       if git diff --quiet && git diff --cached --quiet; then
         echo "No changes to commit in sre-argocd"
-        exit 0
+        exit 1
       fi
-      sre_argocd_branch=chore-deploy-revault-to-stg
+      sre_argocd_branch=chore-deploy-revault-to-stg-${clone_revault.repo.head_hash_short}
       echo "Creating branch $sre_argocd_branch in sre-argocd..."
       git checkout -b $sre_argocd_branch
       git add -A
@@ -37,8 +37,9 @@ steps:
     working-dir: ${clone_sre_argocd.repo.local_dir}
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr
+    if: update_sre_argocd.sre_argocd_branch != ""
     with:
       repo: LedgerHQ/sre-argocd
       head: ${update_sre_argocd.sre_argocd_branch}
       base: main
-      title: "chore: update revault preset"
+      title: "chore(revault): deploy revault to stg (${clone_revault.repo.head_hash_short})"
