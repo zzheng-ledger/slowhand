@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from slowhand.models import load_job
 
 

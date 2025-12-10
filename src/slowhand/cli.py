@@ -1,11 +1,12 @@
 from textwrap import indent
-from rich import print as rprint
-import typer
 
+import typer
+from rich import print as rprint
+
+from slowhand.config import config
 from slowhand.logging import configure_logging, get_logger
 from slowhand.models import load_job
 from slowhand.runner import run_job
-from slowhand.config import config
 from slowhand.tools import get_gh_info, get_git_info
 from slowhand.version import VERSION
 

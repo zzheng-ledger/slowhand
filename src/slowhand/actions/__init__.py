@@ -1,8 +1,9 @@
 from slowhand.actions.shell import Shell
 from slowhand.errors import SlowhandException
-from .github import GithubCreatePr
-from .git import GitClone
+
 from .base import Action, ActionParams
+from .git import GitClone
+from .github import GithubCreatePr
 
 __all__ = ("Action", "ActionParams", "create_action")
 

@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from slowhand.logging import get_logger
 from slowhand.utils import random_name, run_command
+
 from .base import Action
 
 logger = get_logger(__name__)

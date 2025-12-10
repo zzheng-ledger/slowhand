@@ -2,7 +2,13 @@ from dataclasses import dataclass
 from typing import Literal
 
 from slowhand.context import Context
-from slowhand.expression.lexer import Token, StringToken, VariableToken, EqNeqToken, AndOrToken
+from slowhand.expression.lexer import (
+    AndOrToken,
+    EqNeqToken,
+    StringToken,
+    Token,
+    VariableToken,
+)
 
 
 @dataclass
@@ -11,6 +17,7 @@ class VariableNode:
 
     def evaluate(self, context: Context) -> str:
         return context.resolve_variable(self.name)
+
 
 @dataclass
 class StringNode:
@@ -33,7 +40,6 @@ class EqNeqNode:
             return left == right
         else:
             return left != right
-
 
 
 @dataclass
@@ -94,17 +100,20 @@ def _parse_eq_neq(tokens: TokenList) -> ASTNode:
 
 def _parse_and(tokens: TokenList) -> ASTNode:
     node = _parse_eq_neq(tokens)
-    while (token := tokens.peek()) and isinstance(token, AndOrToken) and token.op == "&&":
+    while (
+        (token := tokens.peek()) and isinstance(token, AndOrToken) and token.op == "&&"
+    ):
         tokens.consume()  # pop out the peeked operator
         right = _parse_eq_neq(tokens)
         node = AndOrNode(left=node, op=token.op, right=right)
     return node
 
 
-
 def _parse_or(tokens: TokenList) -> ASTNode:
     node = _parse_and(tokens)
-    while (token := tokens.peek()) and isinstance(token, AndOrToken) and token.op == "||":
+    while (
+        (token := tokens.peek()) and isinstance(token, AndOrToken) and token.op == "||"
+    ):
         tokens.consume()  # pop out the peeked operator
         right = _parse_and(tokens)
         node = AndOrNode(left=node, op=token.op, right=right)

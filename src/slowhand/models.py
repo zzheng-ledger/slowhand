@@ -1,6 +1,7 @@
-from typing import List, Literal, Union
-from pydantic import BaseModel, Field
+from typing import Literal, Union
+
 import yaml
+from pydantic import BaseModel, Field
 
 from slowhand.config import config
 from slowhand.errors import SlowhandException
@@ -29,7 +30,7 @@ JobStep = Union[UseAction, RunShell]
 
 class Job(BaseModel):
     name: str
-    steps: List[JobStep]
+    steps: list[JobStep]
 
 
 def load_job(name: str) -> Job:

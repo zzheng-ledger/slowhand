@@ -1,8 +1,8 @@
 import os
-import subprocess
-from textwrap import dedent
-import time
 import random
+import subprocess
+import time
+from textwrap import dedent
 from typing import Any
 
 from slowhand.logging import get_logger

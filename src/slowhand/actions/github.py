@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field
-from slowhand.logging import get_logger
 from typing import override
-import shlex
 
+from pydantic import BaseModel, Field
+
+from slowhand.logging import get_logger
 from slowhand.utils import run_command
 
 from .base import Action

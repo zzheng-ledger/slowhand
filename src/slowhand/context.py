@@ -1,8 +1,8 @@
-from datetime import datetime
-from pathlib import Path
 import re
 import shutil
 import tempfile
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from slowhand.errors import SlowhandException
@@ -39,8 +39,10 @@ class Context:
 
     def resolve(self, input: Any) -> Any:
         if isinstance(input, str):
-            repl = lambda m: self.resolve_variable(m.group(1))
-            return VARIABLE_REGEX.sub(repl, input)
+            return VARIABLE_REGEX.sub(
+                lambda m: self.resolve_variable(m.group(1)),
+                input,
+            )
         if isinstance(input, dict):
             return dict((key, self.resolve(value)) for key, value in input.items())
         if isinstance(input, list):

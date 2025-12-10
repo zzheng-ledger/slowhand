@@ -1,8 +1,8 @@
-from abc import ABC
-from dataclasses import dataclass
-from re import Pattern, Match
 import re
-from typing import Callable, Literal, cast
+from collections.abc import Callable
+from dataclasses import dataclass
+from re import Match, Pattern
+from typing import Literal, cast
 
 
 @dataclass
@@ -40,19 +40,11 @@ _TOKEN_MATCHERS: list[tuple[Pattern, TokenFactory]] = [
         lambda m: StringToken(value=m.group("value")),
     ),
     (
-        re.compile(
-            r"(?P<op>"
-            + "|".join([re.escape(op) for op in ("==", "!=")])
-            + ")"
-        ),
+        re.compile(r"(?P<op>" + "|".join([re.escape(op) for op in ("==", "!=")]) + ")"),
         lambda m: EqNeqToken(op=cast(Literal["==", "!="], m.group("op"))),
     ),
     (
-        re.compile(
-            r"(?P<op>"
-            + "|".join([re.escape(op) for op in ("&&", "||")])
-            + ")"
-        ),
+        re.compile(r"(?P<op>" + "|".join([re.escape(op) for op in ("&&", "||")]) + ")"),
         lambda m: AndOrToken(op=cast(Literal["&&", "||"], m.group("op"))),
     ),
 ]

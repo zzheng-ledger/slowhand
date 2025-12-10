@@ -1,9 +1,10 @@
 import datetime
 import json
 import logging
+from collections.abc import Iterable, Mapping
 from enum import Enum
 from typing import Any
-from collections.abc import Mapping, Iterable
+
 from rich.logging import RichHandler
 
 from slowhand.config import config

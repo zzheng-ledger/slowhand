@@ -1,7 +1,6 @@
-from pathlib import Path
 from pprint import pprint
 
-from slowhand.expression.lexer import *
+from slowhand.expression.lexer import tokenize
 from slowhand.expression.parser import parse_to_ast
 
 

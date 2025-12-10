@@ -1,10 +1,10 @@
+from slowhand.actions import create_action
 from slowhand.config import config
+from slowhand.context import Context
 from slowhand.errors import SlowhandException
 from slowhand.expression import evaluate_condition
-from slowhand.logging import get_logger, Style
-from slowhand.actions import create_action
+from slowhand.logging import Style, get_logger
 from slowhand.models import Job
-from slowhand.context import Context
 
 logger = get_logger(__name__)
 
@@ -34,7 +34,9 @@ def run_job(job: Job, *, clean: bool = True) -> None:
                 f"({Style.MUTED.apply(action_name)}), "
                 f"id={Style.MUTED.apply(step.id)}"
             )
-            if step.condition is None or evaluate_condition(step.condition, context=context):
+            if step.condition is None or evaluate_condition(
+                step.condition, context=context
+            ):
                 logger.info("● Running step: %s", step_desc)
                 output = action.run(params, context=context)
                 if step.id and output:

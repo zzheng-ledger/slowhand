@@ -1,13 +1,18 @@
 [project]
 name = "slowhand"
 description = "Default template for PDM package"
-authors = [
-    {name = "Zhong Zheng", email = "zhong.zheng@ledger.fr"},
+authors = [{ name = "Zhong Zheng", email = "zhong.zheng@ledger.fr" }]
+dependencies = [
+    "rich>=14.2.0",
+    "typer>=0.20.0",
+    "pydantic>=2.12.5",
+    "PyYAML>=6.0.3",
+    "pydantic-settings>=2.12.0",
+    "jira>=3.10.5",
 ]
-dependencies = ["rich>=14.2.0", "typer>=0.20.0", "pydantic>=2.12.5", "PyYAML>=6.0.3", "pydantic-settings>=2.12.0", "jira>=3.10.5"]
 requires-python = ">=3.13"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -15,6 +20,7 @@ dev = [
     "pytest>=9.0.1",
     "mypy>=1.19.0",
     "types-PyYAML>=6.0.12.20250915",
+    "ruff>=0.14.8",
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -29,6 +35,14 @@ slowhand.call = "slowhand.cli:app"
 slow.call = "slowhand.cli:app"
 
 typecheck.cmd = "mypy src tests --warn-unused-ignores"
+format.composite = [
+    # See: https://docs.astral.sh/ruff/formatter/#sorting-imports
+    "ruff check --select C,I,UP --fix-only --show-fixes src tests",
+    "ruff format src tests",
+]
+
+lint.cmd = "ruff check src tests"
+"lint:fix".cmd = "ruff check --fix --show-fixes src tests"
 
 test.cmd = "pytest"
 
