@@ -4,7 +4,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Zhong Zheng", email = "zhong.zheng@ledger.fr"},
 ]
-dependencies = ["rich>=14.2.0", "typer>=0.20.0", "pydantic>=2.12.5", "PyYAML>=6.0.3", "pydantic-settings>=2.12.0"]
+dependencies = ["rich>=14.2.0", "typer>=0.20.0", "pydantic>=2.12.5", "PyYAML>=6.0.3", "pydantic-settings>=2.12.0", "jira>=3.10.5"]
 requires-python = ">=3.13"
 readme = "README.md"
 license = {text = "MIT"}
@@ -13,6 +13,8 @@ dynamic = ["version"]
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.1",
+    "mypy>=1.19.0",
+    "types-PyYAML>=6.0.12.20250915",
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -25,6 +27,8 @@ distribution = true
 
 slowhand.call = "slowhand.cli:app"
 slow.call = "slowhand.cli:app"
+
+typecheck.cmd = "mypy src tests --warn-unused-ignores"
 
 test.cmd = "pytest"
 

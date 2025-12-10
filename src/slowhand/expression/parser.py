@@ -26,7 +26,7 @@ class EqNeqNode:
     op: Literal["==", "!="]
     right: "ASTNode"
 
-    def evaluate(self, context: Context) -> str:
+    def evaluate(self, context: Context) -> bool:
         left = self.left.evaluate(context)
         right = self.right.evaluate(context)
         if self.op == "==":
@@ -42,7 +42,7 @@ class AndOrNode:
     op: Literal["&&", "||"]
     right: "ASTNode"
 
-    def evaluate(self, context: Context) -> str:
+    def evaluate(self, context: Context) -> bool:
         left = self.left.evaluate(context)
         right = self.right.evaluate(context)
         if self.op == "&&":

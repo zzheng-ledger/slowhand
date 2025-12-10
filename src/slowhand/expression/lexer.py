@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from re import Pattern, Match
 import re
-from typing import Callable, ClassVar, Literal
+from typing import Callable, Literal, cast
 
 
 @dataclass
@@ -45,7 +45,7 @@ _TOKEN_MATCHERS: list[tuple[Pattern, TokenFactory]] = [
             + "|".join([re.escape(op) for op in ("==", "!=")])
             + ")"
         ),
-        lambda m: EqNeqToken(op=m.group("op")),
+        lambda m: EqNeqToken(op=cast(Literal["==", "!="], m.group("op"))),
     ),
     (
         re.compile(
@@ -53,7 +53,7 @@ _TOKEN_MATCHERS: list[tuple[Pattern, TokenFactory]] = [
             + "|".join([re.escape(op) for op in ("&&", "||")])
             + ")"
         ),
-        lambda m: AndOrToken(op=m.group("op")),
+        lambda m: AndOrToken(op=cast(Literal["&&", "||"], m.group("op"))),
     ),
 ]
 

@@ -17,7 +17,7 @@ class Style(Enum):
     DANGER = "red1"
     ALERT = "orange1"
 
-    def format(self, text: str) -> str:
+    def apply(self, text: Any) -> str:
         return f"[{self.value}]{text}[/{self.value}]"
 
 
@@ -64,7 +64,7 @@ class ConsoleLogger:
 
     def debug(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)
-        self._logger.debug(Style.MUTED.format(msg), *args, **kwargs)
+        self._logger.debug(Style.MUTED.apply(msg), *args, **kwargs)
 
     def info(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)

@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 def run_job(job: Job, *, clean: bool = True) -> None:
     context = Context()
     try:
-        logger.info("» Running job: %s", Style.PRIMARY.format(job.name))
+        logger.info("» Running job: %s", Style.PRIMARY.apply(job.name))
         for step in job.steps:
             if step.kind == "RunShell":
                 # Convert a `RunShell` step to an `actions/shell` action
@@ -30,9 +30,9 @@ def run_job(job: Job, *, clean: bool = True) -> None:
             action = create_action(action_name)
             params = context.resolve(params or {})
             step_desc = (
-                f"{Style.PRIMARY.format(step.name)} "
-                f"({Style.MUTED.format(action_name)}), "
-                f"id={Style.MUTED.format(step.id)}"
+                f"{Style.PRIMARY.apply(step.name)} "
+                f"({Style.MUTED.apply(action_name)}), "
+                f"id={Style.MUTED.apply(step.id)}"
             )
             if step.condition is None or evaluate_condition(step.condition, context=context):
                 logger.info("● Running step: %s", step_desc)

@@ -4,13 +4,9 @@ from .github import GithubCreatePr
 from .git import GitClone
 from .base import Action, ActionParams
 
-__all__ = (
-    "Action",
-    "ActionParams",
-    "create_action",
-)
+__all__ = ("Action", "ActionParams", "create_action")
 
-_BUILTIN_ACTIONS = {
+_BUILTIN_ACTIONS: dict[str, type[Action]] = {
     "actions/git-clone": GitClone,
     "actions/github-create-pr": GithubCreatePr,
     "actions/shell": Shell,

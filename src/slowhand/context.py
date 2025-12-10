@@ -48,7 +48,7 @@ class Context:
         return input
 
     def resolve_variable(self, var_name: str) -> str:
-        current = self._outputs
+        current: dict | str | None = self._outputs
         for token in var_name.split("."):
             if not isinstance(current, dict):
                 raise SlowhandException(f"Variable canont be resolved: {var_name}")

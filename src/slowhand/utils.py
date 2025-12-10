@@ -3,6 +3,7 @@ import subprocess
 from textwrap import dedent
 import time
 import random
+from typing import Any
 
 from slowhand.logging import get_logger
 
@@ -22,8 +23,8 @@ def random_name(prefix: str | None = None) -> str:
 def _get_subprocess_kwargs(
     cwd: str | None = None,
     extra_env: dict[str, str] | None = None,
-) -> dict[str, str]:
-    kwargs = {}
+) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {}
     if cwd:
         kwargs["cwd"] = cwd
     if extra_env:
@@ -60,7 +61,7 @@ def run_shell_script(
     *,
     cwd: str | None = None,
     extra_env: dict[str, str] | None = None,
-) -> dict[str, str]:
+) -> None:
     script = "\n".join(
         [
             "set -e",  # to exit (with non-zero code) on first error
