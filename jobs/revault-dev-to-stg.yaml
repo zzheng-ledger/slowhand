@@ -1,8 +1,4 @@
-name: Deploy revault to stg
-
-inputs:
-
-env:
+name: Deploy revault from dev to stg (next, qa, ppr2)
 
 steps:
   - name: Clone revault repo

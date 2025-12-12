@@ -1,3 +1,4 @@
+from slowhand.actions.jira import JiraCreateMoTicket
 from slowhand.actions.shell import Shell
 from slowhand.errors import SlowhandException
 
@@ -8,9 +9,13 @@ from .github import GithubCreatePr
 __all__ = ("Action", "ActionParams", "create_action")
 
 _BUILTIN_ACTIONS: dict[str, type[Action]] = {
-    "actions/git-clone": GitClone,
-    "actions/github-create-pr": GithubCreatePr,
-    "actions/shell": Shell,
+    f"actions/{action_class.name}": action_class
+    for action_class in (
+        GitClone,
+        GithubCreatePr,
+        JiraCreateMoTicket,
+        Shell,
+    )
 }
 
 
