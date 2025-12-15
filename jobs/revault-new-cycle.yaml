@@ -1,18 +1,19 @@
 name: Prepare revault stg (next, qa, ppr2)
 
 steps:
-  - name: Clone sre-argocd repo
-    id: clone_sre_argocd
+  - name: "sre-argocd: clone and checkout new branch"
+    id: sre_argocd
     uses: actions/git-clone
     with:
       repo: LedgerHQ/sre-argocd
       fetch-depth: 1
+      new-branch: chore-revault-new-cycle
 
   - name: Find revault deploy versions
     id: revault_deploy_versions
     uses: actions/revault-find-deploy-versions
     with:
-      sre-argocd-dir: ${clone_sre_argocd.repo.local_dir}
+      sre-argocd-dir: ${sre_argocd.repo.local_dir}
 
   - name: Ensure precondition
     if: revault_deploy_versions.stg != revault_deploy_versions.ppr || revault_deploy_versions.stg != revault_deploy_versions.prd
@@ -36,38 +37,33 @@ steps:
          "deploy/platform-2220-cluster/applications/vault/releases/revault-${new_version}.yaml"
       echo "old_version=$old_version" >> $OUTPUT
       echo "new_version=$new_version" >> $OUTPUT
-    working-dir: ${clone_sre_argocd.repo.local_dir}
+    working-dir: ${sre_argocd.repo.local_dir}
 
   - name: Update revault deploy versions
     id: update_revault_deploy_versions
     uses: actions/revault-update-deploy-versions
     with:
-      sre-argocd-dir: ${clone_sre_argocd.repo.local_dir}
+      sre-argocd-dir: ${sre_argocd.repo.local_dir}
       target-env: stg
       from-version: ${revault_new_cycle.old_version}
       to-version: ${revault_new_cycle.new_version}
 
-  - name: Commit and push to sre-argocd
+  - name: Commit and push
     id: push_sre_argocd
     run: |
       if git diff --quiet && git diff --cached --quiet; then
         echo "No changes to commit in sre-argocd"
         exit 1
       fi
-      sre_argocd_branch=chore-revault-stg-${revault_new_cycle.new_version}
-      echo "Creating branch $sre_argocd_branch in sre-argocd..."
-      git checkout -b $sre_argocd_branch
       git add -A
-      git commit -m "chore: update revault stg to ${revault_new_cycle.new_version}"
-      git push --set-upstream origin $sre_argocd_branch
-      echo "sre_argocd_branch=$sre_argocd_branch" >> $OUTPUT
-    working-dir: ${clone_sre_argocd.repo.local_dir}
+      git commit -m "chore(revault): start new release cycle (${revault_new_cycle.new_version})"
+      git push --set-upstream origin ${sre_argocd.repo.new_branch}
+    working-dir: ${sre_argocd.repo.local_dir}
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr
-    if: push_sre_argocd.sre_argocd_branch != ""
     with:
       repo: LedgerHQ/sre-argocd
-      head: ${push_sre_argocd.sre_argocd_branch}
+      head: ${sre_argocd.repo.new_branch}
       base: main
-      title: "chore(revault): update revault stg to ${revault_new_cycle.new_version}"
+      title: "chore(revault): start new release cycle (${revault_new_cycle.new_version})"

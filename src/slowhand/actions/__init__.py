@@ -5,7 +5,8 @@ from .base import Action, ActionParams
 from .git import GitClone
 from .github import GithubCreatePr
 from .jira import JiraCreateMoTicket
-from .revault import RevaultFindDeployVersions, RevaultUpdateDeployVersions
+from .revault_deploy import RevaultFindDeployVersions, RevaultUpdateDeployVersions
+from .revault_deps import RevaultRevertMobileDeps
 from .shell import Shell
 
 __all__ = ("Action", "ActionParams", "create_action")
@@ -20,6 +21,7 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         Shell,
         RevaultFindDeployVersions,
         RevaultUpdateDeployVersions,
+        RevaultRevertMobileDeps,
     )
 }
 

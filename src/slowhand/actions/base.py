@@ -9,5 +9,5 @@ class Action(ABC):
     name: str = "unknown"  # subclass must override this
 
     @abstractmethod
-    def run(self, params: ActionParams, *, context: Context) -> dict[str, str]:
+    def run(self, params: ActionParams, *, context: Context) -> dict[str, str | None]:
         pass

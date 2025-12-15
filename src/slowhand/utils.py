@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import random
 import subprocess
 import time
@@ -21,12 +22,12 @@ def random_name(prefix: str | None = None) -> str:
 
 
 def _get_subprocess_kwargs(
-    cwd: str | None = None,
+    cwd: Path | str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     kwargs: dict[str, Any] = {}
     if cwd:
-        kwargs["cwd"] = cwd
+        kwargs["cwd"] = str(cwd)
     if extra_env:
         kwargs["env"] = os.environ | extra_env
     return kwargs
@@ -34,7 +35,7 @@ def _get_subprocess_kwargs(
 
 def run_command(
     *args: str,
-    cwd: str | None = None,
+    cwd: Path | str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> str:
     kwargs = _get_subprocess_kwargs(cwd=cwd, extra_env=extra_env)
@@ -59,7 +60,7 @@ def run_command(
 def run_shell_script(
     script: str,
     *,
-    cwd: str | None = None,
+    cwd: Path | str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> None:
     script = "\n".join(
