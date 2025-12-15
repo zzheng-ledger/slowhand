@@ -1,13 +1,11 @@
 import os
 from textwrap import dedent
-from typing import override
+from typing import Any, override
 
 from jira import JIRA
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
-from slowhand.config import config
 from slowhand.logging import get_logger
-from slowhand.utils import run_command
 
 from .base import Action
 
@@ -33,7 +31,7 @@ _RISK_OF_THE_CHANGE = "customfield_10132"
 _DETAILS_OF_THE_RISK = "customfield_10133"
 
 
-def _to_value(value: str, *, child: dict[str, str] | None = None) -> dict[str, str]:
+def _to_value(value: str, *, child: dict[str, str] | None = None) -> dict[str, Any]:
     return {"value": value} | ({"child": child} if child else {})
 
 

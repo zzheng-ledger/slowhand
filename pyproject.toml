@@ -9,6 +9,7 @@ dependencies = [
     "PyYAML>=6.0.3",
     "pydantic-settings>=2.12.0",
     "jira>=3.10.5",
+    "jsonpath-ng>=1.7.0",
 ]
 requires-python = ">=3.13"
 readme = "README.md"
@@ -45,6 +46,8 @@ lint.cmd = "ruff check src tests"
 "lint:fix".cmd = "ruff check --fix --show-fixes src tests"
 
 test.cmd = "pytest"
+
+play.call = "slowhand.play_nogit:main"
 
 [tool.pdm.version]
 source = "scm"
