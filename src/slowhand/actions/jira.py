@@ -1,10 +1,11 @@
-import os
 from textwrap import dedent
 from typing import Any, override
 
 from jira import JIRA
 from pydantic import BaseModel, Field
 
+from slowhand.config import settings
+from slowhand.errors import SlowhandException
 from slowhand.logging import get_logger
 
 from .base import Action
@@ -52,12 +53,15 @@ class JiraCreateMoTicket(Action):
     def run(self, params, *, context):
         params = JiraCreateMoTicketParams(**params)
 
-        jira_server = os.environ["JIRA_SERVER"]
-        jira_email = os.environ["JIRA_EMAIL"]
-        jira_api_token = os.environ["JIRA_API_TOKEN"]
+        jira_server = settings.jira.server
+        jira_email = settings.jira.email
+        jira_api_token = settings.jira.api_token
+        if jira_server or not jira_email or not jira_api_token:
+            raise SlowhandException("JIRA server, email or API token is not configured")
+
         jira = JIRA(
             server=jira_server,
-            basic_auth=(jira_email, jira_api_token),
+            basic_auth=(jira_email, jira_api_token.get_secret_value()),
         )
 
         component_version = f"{params.component}-{params.version}"

@@ -1,5 +1,7 @@
+import os
 from pathlib import Path
 
+from pydantic import BaseModel, SecretStr
 from pydantic_settings import (
     BaseSettings,
     JsonConfigSettingsSource,
@@ -10,15 +12,25 @@ from pydantic_settings import (
 _BASE_DIR = Path(__file__).parent.parent.parent.absolute()
 
 
-class Config(BaseSettings):
+class GithubSettings(BaseModel):
+    token: SecretStr | None = None
+
+
+class JiraSettings(BaseModel):
+    server: str | None = None
+    email: str | None = None
+    api_token: SecretStr | None = None
+
+
+class Settings(BaseSettings):
     debug: bool = False
     user_jobs_dirs: list[Path] = []
+    github: GithubSettings = GithubSettings()
+    jira: JiraSettings = JiraSettings()
 
     model_config = SettingsConfigDict(
-        json_file=str(Path.home() / ".slowhand.json"),
-        json_file_encoding="utf-8",
         env_prefix="SLOWHAND_",
-        env_nested_delimiter="__",
+        env_nested_delimiter="_",
         extra="ignore",
     )
 
@@ -33,9 +45,11 @@ class Config(BaseSettings):
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         return (
             init_settings,
-            JsonConfigSettingsSource(settings_cls),
-            dotenv_settings,
             env_settings,
+            JsonConfigSettingsSource(
+                settings_cls,
+                json_file=Path.home() / ".slowhand.json",
+            ),
         )
 
     @property
@@ -43,4 +57,18 @@ class Config(BaseSettings):
         return self.user_jobs_dirs + [_BASE_DIR / "jobs"]
 
 
-config = Config()
+def _load_settings() -> Settings:
+    settings = Settings()
+
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if github_token:
+        settings.github.token = SecretStr(github_token)
+
+    jira_api_token = os.environ.get("JIRA_API_TOKEN")
+    if jira_api_token:
+        settings.jira.api_token = SecretStr(jira_api_token)
+
+    return settings
+
+
+settings = _load_settings()

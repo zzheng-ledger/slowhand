@@ -7,7 +7,7 @@ from typing import Any
 
 from rich.logging import RichHandler
 
-from slowhand.config import config
+from slowhand.config import settings
 
 
 class Style(Enum):
@@ -82,7 +82,7 @@ class ConsoleLogger:
 
 def configure_logging() -> None:
     logging.basicConfig(
-        level="DEBUG" if config.debug else "INFO",
+        level="DEBUG" if settings.debug else "INFO",
         format="%(message)s",
         datefmt="%H:%M:%S",
         handlers=[RichHandler(rich_tracebacks=True)],

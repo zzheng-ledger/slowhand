@@ -1,5 +1,5 @@
 from slowhand.actions import create_action
-from slowhand.config import config
+from slowhand.config import settings
 from slowhand.context import Context
 from slowhand.errors import SlowhandException
 from slowhand.expression import evaluate_condition
@@ -43,10 +43,13 @@ def run_job(job: Job, *, clean: bool = True) -> None:
                     context.save_output(step.id, output)
             else:
                 logger.info("○ Skipping step: %s", step_desc)
+
+        if clean and not settings.debug:
+            logger.info("Cleaning up...")
+            context.teardown()
+
     except Exception as exc:
         logger.error("Job %s failed: %s", job.name, exc)
-        if config.debug:
+        logger.info("Run dir is kept: %s", context.run_dir)
+        if settings.debug:
             raise
-    finally:
-        if clean:
-            context.teardown()

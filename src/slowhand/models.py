@@ -3,7 +3,7 @@ from typing import Literal, Union
 import yaml
 from pydantic import BaseModel, Field
 
-from slowhand.config import config
+from slowhand.config import settings
 from slowhand.errors import SlowhandException
 
 
@@ -36,7 +36,7 @@ class Job(BaseModel):
 
 
 def load_job(job_id: str) -> Job:
-    for jobs_dir in config.jobs_dirs:
+    for jobs_dir in settings.jobs_dirs:
         job_file = jobs_dir / f"{job_id}.yaml"
         if job_file.is_file():
             with job_file.open("r") as f:
@@ -51,7 +51,7 @@ def load_job(job_id: str) -> Job:
 
 def load_jobs() -> list[Job]:
     jobs: list[Job] = []
-    for jobs_dir in config.jobs_dirs:
+    for jobs_dir in settings.jobs_dirs:
         # List all files with name `*.yaml`
         if not jobs_dir.is_dir():
             continue

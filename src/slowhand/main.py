@@ -3,7 +3,7 @@ from textwrap import indent
 import typer
 from rich import print as rprint
 
-from slowhand.config import config
+from slowhand.config import settings
 from slowhand.logging import configure_logging
 from slowhand.models import load_job, load_jobs
 from slowhand.runner import run_job
@@ -17,7 +17,7 @@ app = typer.Typer()
 
 @app.command("config")
 def manage_config(create: bool = False):
-    print(config.model_dump_json(indent=2))
+    print(settings.model_dump_json(indent=2))
     if create:
         pass
 
@@ -54,6 +54,7 @@ def job(name: str, clean: bool = True):
 
 def main():
     app()
+
 
 if __name__ == "__main__":
     main()
