@@ -52,5 +52,8 @@ def job(name: str, clean: bool = True):
     run_job(job, clean=clean)
 
 
-if __name__ == "__main__":
+def main():
     app()
+
+if __name__ == "__main__":
+    main()

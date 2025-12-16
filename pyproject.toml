@@ -23,6 +23,11 @@ dev = [
     "types-PyYAML>=6.0.12.20250915",
     "ruff>=0.14.8",
 ]
+
+[project.scripts]
+slowhand = "slowhand.main:main"
+slow = "slowhand.main:main"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -32,8 +37,8 @@ distribution = true
 
 [tool.pdm.scripts]
 
-slowhand.call = "slowhand.cli:app"
-slow.call = "slowhand.cli:app"
+slowhand.call = "slowhand.main:main"
+slow.call = "slowhand.main:main"
 
 typecheck.cmd = "mypy src tests --warn-unused-ignores"
 format.composite = [
@@ -52,3 +57,4 @@ play.call = "slowhand.play_nogit:main"
 [tool.pdm.version]
 source = "scm"
 write_to = "slowhand/VERSION"
+
