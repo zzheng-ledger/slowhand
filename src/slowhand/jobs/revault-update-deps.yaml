@@ -11,16 +11,16 @@ steps:
 
   - name: Update dependencies
     run: pnpm update -r
-    working-dir: ${revault.repo.local_dir}
+    working-dir: ${{ revault.repo.local_dir }}
 
   - name: Revert changes in mobile package
     uses: actions/revault-revert-mobile-deps
     with:
-      revault-dir: ${revault.repo.local_dir}
+      revault-dir: ${{ revault.repo.local_dir }}
 
   - name: Install and lock deps
     run: git restore pnpm-lock.yaml && pnpm install
-    working-dir: ${revault.repo.local_dir}
+    working-dir: ${{ revault.repo.local_dir }}
 
   - name: Format and run static checks
     run: |
@@ -31,7 +31,7 @@ steps:
       pnpm run spellcheck
       pnpm run depscheck
       pnpm run check-convention
-    working-dir: ${revault.repo.local_dir}
+    working-dir: ${{ revault.repo.local_dir }}
 
   - name: Commit and push
     run: |
@@ -41,13 +41,13 @@ steps:
       fi
       git add -A
       git commit -m "chore: update deps"
-      git push --set-upstream origin ${revault.repo.new_branch}
-    working-dir: ${revault.repo.local_dir}
+      git push --set-upstream origin ${{ revault.repo.new_branch }}
+    working-dir: ${{ revault.repo.local_dir }}
 
   - name: Create PR
     uses: actions/github-create-pr
     with:
       repo: LedgerHQ/revault
-      head: ${revault.repo.new_branch}
+      head: ${{ revault.repo.new_branch }}
       base: main
       title: "chore: update deps"

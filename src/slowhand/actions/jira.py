@@ -56,7 +56,7 @@ class JiraCreateMoTicket(Action):
         jira_server = settings.jira.server
         jira_email = settings.jira.email
         jira_api_token = settings.jira.api_token
-        if jira_server or not jira_email or not jira_api_token:
+        if not jira_server or not jira_email or not jira_api_token:
             raise SlowhandException("JIRA server, email or API token is not configured")
 
         jira = JIRA(

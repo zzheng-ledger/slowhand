@@ -11,9 +11,8 @@ from slowhand.utils import random_name
 
 logger = get_logger(__name__)
 
-# Variable format is `${foo.bar}`. It needs to have at least one dot, so that
-# we can distinguish it from a normal shell variable (`$foobar`).
-VARIABLE_REGEX = re.compile(r"\${([\w\-]+(?:\.[\w\-]+)+)}")
+# Format is `${{ foo.bar }}` to be distinguished from a normal shell variable (`$foobar`).
+VARIABLE_REGEX = re.compile(r"\${{\s*([\w\-]+(?:\.[\w\-]+)+)\s*}}")
 
 
 class Context:

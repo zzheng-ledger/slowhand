@@ -9,17 +9,24 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-_BASE_DIR = Path(__file__).parent.parent.parent.absolute()
-
+_SETTINGS_FILE = Path.home() / ".slowhand.json"
 
 class GithubSettings(BaseModel):
     token: SecretStr | None = None
+
+    @property
+    def exclude(self) -> dict[str, bool]:
+        return {"token": True}
 
 
 class JiraSettings(BaseModel):
     server: str | None = None
     email: str | None = None
     api_token: SecretStr | None = None
+
+    @property
+    def exclude(self) -> dict[str, bool]:
+        return {"api_token": True}
 
 
 class Settings(BaseSettings):
@@ -48,9 +55,21 @@ class Settings(BaseSettings):
             env_settings,
             JsonConfigSettingsSource(
                 settings_cls,
-                json_file=Path.home() / ".slowhand.json",
+                json_file=_SETTINGS_FILE,
             ),
         )
+
+    def save(self) -> str:
+        text = self.model_dump_json(
+            exclude={
+                "debug": True,
+                "github": self.github.exclude,
+                "jira": self.jira.exclude,
+            },
+            indent=2,
+        )
+        _SETTINGS_FILE.write_text(text)
+        return str(_SETTINGS_FILE)
 
 
 def _load_settings() -> Settings:

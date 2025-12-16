@@ -15,7 +15,7 @@ def _apply_style(text: Any, style: str) -> str:
 
 
 def primary(text: Any) -> str:
-    return _apply_style(text, "bold green")
+    return _apply_style(text, "bold cyan")
 
 
 def secondary(text: Any) -> str:
@@ -26,12 +26,20 @@ def muted(text: Any) -> str:
     return _apply_style(text, "grey50")
 
 
+def success(text: Any) -> str:
+    return _apply_style(text, "green")
+
+
 def danger(text: Any) -> str:
     return _apply_style(text, "red1")
 
 
 def alert(text: Any) -> str:
     return _apply_style(text, "orange1")
+
+
+def ok() -> str:
+    return success("✓ ")
 
 
 def _to_json_value(value: Any) -> Any:

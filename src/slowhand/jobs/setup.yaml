@@ -1,7 +1,26 @@
 name: Setup slowhand
 
-# TODO: params
-
 steps:
-  - name: List files
-    run: ls -l .
+  - name: Setup git
+    id: setup_git
+    uses: actions/setup-git
+
+  - name: Setup github cli
+    id: setup_gh
+    uses: actions/setup-gh
+
+  - name: Setup Jira
+    id: setup_jira
+    uses: actions/setup-jira
+
+  - name: Setup jobs dirs
+    uses: actions/setup-jobs-dirs
+
+  - name: Summary
+    run: |
+      cat <<EOF
+      Summary:
+      - setup git  : ${{ setup_git.git_version }}
+      - setup gh   : ${{ setup_gh.gh_version }}
+      - setup jira : ${{ setup_jira.jira_display_name}}
+      EOF

@@ -12,4 +12,4 @@ steps:
 
   - name: List files
     run: ls -l .
-    working-dir: ${revault.repo.local_dir}
+    working-dir: ${{ revault.repo.local_dir }}

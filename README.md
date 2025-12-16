@@ -28,10 +28,6 @@ See: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-
 - Authenticate in https://id.atlassian.com
 - Create API token (don't use scopes)
 - Specify API token name and expiration
-- Select API token app: `Jira`
-- Select Jira scopes:
-  - `write:issue:jira` - Create and update issues
-  - `write:issue.property:jira` - Create and update issue properties
 - Create token, and save it in env var: `JIRA_API_TOKEN`
 
 ## Example

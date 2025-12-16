@@ -7,6 +7,7 @@ from .github import GithubCreatePr
 from .jira import JiraCreateMoTicket
 from .revault_deploy import RevaultFindDeployVersions, RevaultUpdateDeployVersions
 from .revault_deps import RevaultRevertMobileDeps
+from .setup import SetupGh, SetupGit, SetupJira, SetupJobsDirs
 from .shell import Shell
 from .version import ComputeVersion
 
@@ -24,6 +25,10 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         RevaultFindDeployVersions,
         RevaultUpdateDeployVersions,
         RevaultRevertMobileDeps,
+        SetupGit,
+        SetupGh,
+        SetupJira,
+        SetupJobsDirs,
     )
 }
 
