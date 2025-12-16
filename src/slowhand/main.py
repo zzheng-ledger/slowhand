@@ -13,18 +13,19 @@ from slowhand.version import VERSION
 
 configure_logging()
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 
-@app.command("config")
-def manage_config(create: bool = False):
+@app.command()
+def config():
+    """Print config"""
     print(settings.model_dump_json(indent=2))
-    if create:
-        pass
 
 
 @app.command()
 def info():
+    """Print version and tools info"""
+
     def print_info(title: str, content: str) -> None:
         rprint(f"[bold green]{title}[/bold green]")
         print(indent(content, "    "))
@@ -37,6 +38,7 @@ def info():
 
 @app.command()
 def jobs():
+    """List available jobs"""
     user_jobs = load_user_jobs()
     builtin_jobs = load_builtin_jobs()
 
@@ -50,7 +52,8 @@ def jobs():
 
 
 @app.command()
-def job(name: str, clean: bool = True):
+def run(name: str, clean: bool = True):
+    """Load and run a job"""
     job = load_job(name)
     run_job(job, clean=clean)
 

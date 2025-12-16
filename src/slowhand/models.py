@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -21,7 +21,7 @@ class UseAction(BaseJobStep):
     params: dict = Field(default_factory=dict, alias="with")
 
 
-JobStep = Union[UseAction, RunShell]
+JobStep = UseAction | RunShell
 
 
 class Job(BaseModel):

@@ -1,0 +1,7 @@
+name: Setup slowhand
+
+# TODO: params
+
+steps:
+  - name: List files
+    run: ls -l .
