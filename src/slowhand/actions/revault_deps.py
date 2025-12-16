@@ -1,15 +1,16 @@
 import difflib
 import json
-from pathlib import Path
 import re
-from typing import Sequence, override
+from collections.abc import Sequence
+from pathlib import Path
+from typing import override
+
 from pydantic import BaseModel, Field
 
 from slowhand.errors import SlowhandException
 from slowhand.utils import run_command
 
 from .base import Action
-
 
 DEP_REGEX = re.compile(r'^\s*"(?P<lib>[^"]+)": "(?P<version>[^"]+)",?\s*$')
 
@@ -132,7 +133,7 @@ class RevaultRevertMobileDeps(Action):
                 )
                 # Update the new lines in-place
                 new_lines[i1:i2] = lines
-                '''
+                """
                 old_deps = parse_deps(old_lines[i1:i2])
                 new_deps = parse_deps(new_lines[j1:j2])
 
@@ -153,7 +154,7 @@ class RevaultRevertMobileDeps(Action):
                 }
                 for i in range(j1, j2):
                     new_lines[i] = apply_dep(new_lines[i], deps)
-                '''
+                """
             else:
                 raise SlowhandException(f"Unexpected diff tag: {tag}")
 

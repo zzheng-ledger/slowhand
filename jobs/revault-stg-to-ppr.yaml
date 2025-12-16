@@ -1,0 +1,56 @@
+name: Deploy revault from stg to ppr
+
+steps:
+  - name: "sre-argocd: clone and checkout new branch"
+    id: sre_argocd
+    uses: actions/git-clone
+    with:
+      repo: LedgerHQ/sre-argocd
+      fetch-depth: 1
+      new-branch: chore-deploy-revault-stg-to-ppr
+
+  - name: Find revault deploy versions
+    id: revault_deploy_versions
+    uses: actions/revault-find-deploy-versions
+    with:
+      sre-argocd-dir: ${sre_argocd.repo.local_dir}
+
+  - name: Compute next ppr version
+    id: next_ppr_version
+    uses: actions/compute-version
+    with:
+      input: ${revault_deploy_versions.ppr}
+      add-minor: 1
+
+  - name: Ensure precondition
+    if: next_ppr_version.result != revault_deploy_versions.stg
+    uses: actions/abort
+    with:
+      message: Next ppr version (${next_ppr_version.result}) does not match stg version (${revault_deploy_versions.stg})
+
+  - name: Update ppr version
+    uses: actions/revault-update-deploy-versions
+    with:
+      sre-argocd-dir: ${sre_argocd.repo.local_dir}
+      target-env: ppr
+      from-version: ${revault_deploy_versions.ppr}
+      to-version: ${next_ppr_version.result}
+
+  - name: Commit and push
+    run: |
+      if git diff --quiet && git diff --cached --quiet; then
+        echo "No changes to commit in sre-argocd"
+        exit 1
+      fi
+      git add -A
+      git commit -m "chore(revault): update ppr version to ${next_ppr_version.result}"
+      git push --set-upstream origin ${sre_argocd.repo.new_branch}
+    working-dir: ${sre_argocd.repo.local_dir}
+
+  - name: Create a PR in sre-argocd
+    uses: actions/github-create-pr
+    with:
+      repo: LedgerHQ/sre-argocd
+      head: ${sre_argocd.repo.new_branch}
+      base: main
+      title: "chore(revault): update ppr version to ${next_ppr_version.result}"
