@@ -4,8 +4,9 @@ import typer
 from rich import print as rprint
 
 from slowhand.config import settings
-from slowhand.logging import configure_logging
-from slowhand.models import load_job, load_jobs
+from slowhand.loader import load_builtin_jobs, load_job, load_user_jobs
+from slowhand.logging import configure_logging, muted, primary, secondary
+from slowhand.models import Job
 from slowhand.runner import run_job
 from slowhand.tools import get_gh_info, get_git_info
 from slowhand.version import VERSION
@@ -36,14 +37,16 @@ def info():
 
 @app.command()
 def jobs():
-    jobs = load_jobs()
-    rprint(f"Found [bold]{len(jobs)}[/bold] jobs")
-    for job in jobs:
-        rprint(
-            f"  - [bold green]{job.job_id}[/bold green] : "
-            f"{job.name} "
-            f"[grey50]@ {job.source}[/grey50]"
-        )
+    user_jobs = load_user_jobs()
+    builtin_jobs = load_builtin_jobs()
+
+    def print_jobs(kind: str, jobs: list[Job]):
+        rprint(primary(f"{kind} jobs") + muted(f" (x{len(jobs)})"))
+        for job in jobs:
+            rprint(f"  - {secondary(job.job_id)} : {job.name} {muted(job.source)}")
+
+    print_jobs("user", user_jobs)
+    print_jobs("builtin", builtin_jobs)
 
 
 @app.command()

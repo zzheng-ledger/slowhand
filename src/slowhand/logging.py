@@ -2,7 +2,6 @@ import datetime
 import json
 import logging
 from collections.abc import Iterable, Mapping
-from enum import Enum
 from typing import Any
 
 from rich.logging import RichHandler
@@ -10,16 +9,29 @@ from rich.logging import RichHandler
 from slowhand.config import settings
 
 
-class Style(Enum):
+def _apply_style(text: Any, style: str) -> str:
     # See: https://rich.readthedocs.io/en/latest/appendix/colors.html
-    PRIMARY = "bold bright_cyan"
-    SECONDARY = "bright_blue"
-    MUTED = "grey50"
-    DANGER = "red1"
-    ALERT = "orange1"
+    return f"[{style}]{text}[/{style}]"
 
-    def apply(self, text: Any) -> str:
-        return f"[{self.value}]{text}[/{self.value}]"
+
+def primary(text: Any) -> str:
+    return _apply_style(text, "bold green")
+
+
+def secondary(text: Any) -> str:
+    return _apply_style(text, "bright_blue")
+
+
+def muted(text: Any) -> str:
+    return _apply_style(text, "grey50")
+
+
+def danger(text: Any) -> str:
+    return _apply_style(text, "red1")
+
+
+def alert(text: Any) -> str:
+    return _apply_style(text, "orange1")
 
 
 def _to_json_value(value: Any) -> Any:
@@ -65,7 +77,7 @@ class ConsoleLogger:
 
     def debug(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)
-        self._logger.debug(Style.MUTED.apply(msg), *args, **kwargs)
+        self._logger.debug(muted(msg), *args, **kwargs)
 
     def info(self, msg: str, *args, **kwargs):
         msg, kwargs = _format(msg, kwargs)

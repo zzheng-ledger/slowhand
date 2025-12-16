@@ -1,0 +1,15 @@
+name: Sample Job
+
+# TODO: params
+
+steps:
+  - name: Clone revault repo
+    id: revault
+    uses: actions/git-clone
+    with:
+      repo: LedgerHQ/revault
+      fetch-depth: 1
+
+  - name: List files
+    run: ls -l .
+    working-dir: ${revault.repo.local_dir}

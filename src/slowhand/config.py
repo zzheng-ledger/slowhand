@@ -24,7 +24,7 @@ class JiraSettings(BaseModel):
 
 class Settings(BaseSettings):
     debug: bool = False
-    user_jobs_dirs: list[Path] = []
+    jobs_dirs: list[Path] = []
     github: GithubSettings = GithubSettings()
     jira: JiraSettings = JiraSettings()
 
@@ -51,10 +51,6 @@ class Settings(BaseSettings):
                 json_file=Path.home() / ".slowhand.json",
             ),
         )
-
-    @property
-    def jobs_dirs(self) -> list[Path]:
-        return self.user_jobs_dirs + [_BASE_DIR / "jobs"]
 
 
 def _load_settings() -> Settings:

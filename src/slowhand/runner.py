@@ -3,7 +3,7 @@ from slowhand.config import settings
 from slowhand.context import Context
 from slowhand.errors import SlowhandException
 from slowhand.expression import evaluate_condition
-from slowhand.logging import Style, get_logger
+from slowhand.logging import get_logger, muted, primary
 from slowhand.models import Job
 
 logger = get_logger(__name__)
@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 def run_job(job: Job, *, clean: bool = True) -> None:
     context = Context()
     try:
-        logger.info("» Running job: %s", Style.PRIMARY.apply(job.name))
+        logger.info("» Running job: %s", primary(job.name))
         for step in job.steps:
             if step.kind == "RunShell":
                 # Convert a `RunShell` step to an `actions/shell` action
@@ -30,9 +30,7 @@ def run_job(job: Job, *, clean: bool = True) -> None:
             action = create_action(action_name)
             params = context.resolve(params or {})
             step_desc = (
-                f"{Style.PRIMARY.apply(step.name)} "
-                f"({Style.MUTED.apply(action_name)}), "
-                f"id={Style.MUTED.apply(step.id)}"
+                f"{primary(step.name)} ({muted(action_name)}), id={muted(step.id)}"
             )
             if step.condition is None or evaluate_condition(
                 step.condition, context=context
