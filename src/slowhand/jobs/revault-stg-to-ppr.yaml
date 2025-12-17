@@ -2,7 +2,7 @@ name: Deploy revault from stg to ppr
 
 steps:
   - name: "sre-argocd: clone and checkout new branch"
-    id: sre_argocd
+    id: sre_argocd_repo
     uses: actions/git-clone
     with:
       repo: LedgerHQ/sre-argocd
@@ -10,33 +10,33 @@ steps:
       new-branch: chore-deploy-revault-stg-to-ppr
 
   - name: Find revault deploy versions
-    id: revault_deploy_versions
+    id: deploy_versions
     uses: actions/revault-find-deploy-versions
     with:
-      sre-argocd-dir: ${{ sre_argocd.repo.local_dir }}
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Compute next ppr version
     id: next_ppr_version
     uses: actions/compute-version
     with:
-      input: ${{ revault_deploy_versions.ppr }}
+      input: ${{ steps.deploy_versions.outputs.ppr }}
       add-minor: 1
 
   - name: Ensure precondition
-    if: next_ppr_version.result != revault_deploy_versions.stg
+    if: steps.next_ppr_version.outputs.result != steps.deploy_versions.outputs.stg
     uses: actions/abort
     with:
       message: |
         Next ppr version does not match stg version:
-        ${{ next_ppr_version.result }} != ${{ revault_deploy_versions.stg }}
+        ${{ steps.next_ppr_version.outputs.result }} != ${{ steps.deploy_versions.outputs.stg }}
 
   - name: Update ppr version
     uses: actions/revault-update-deploy-versions
     with:
-      sre-argocd-dir: ${{ sre_argocd.repo.local_dir }}
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
       target-env: ppr
-      from-version: ${{ revault_deploy_versions.ppr }}
-      to-version: ${{ next_ppr_version.result }}
+      from-version: ${{ steps.deploy_versions.outputs.ppr }}
+      to-version: ${{ steps.next_ppr_version.outputs.result }}
 
   - name: Commit and push
     run: |
@@ -45,14 +45,14 @@ steps:
         exit 1
       fi
       git add -A
-      git commit -m "chore(revault): update ppr version to ${{ next_ppr_version.result }}"
-      git push --set-upstream origin ${{ sre_argocd.repo.new_branch }}
-    working-dir: ${{ sre_argocd.repo.local_dir }}
+      git commit -m "chore(revault): update ppr version to ${{ steps.next_ppr_version.outputs.result }}"
+      git push --set-upstream origin ${{ steps.sre_argocd_repo.outputs.new_branch }}
+    working-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr
     with:
       repo: LedgerHQ/sre-argocd
-      head: ${{ sre_argocd.repo.new_branch }}
+      head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
       base: main
-      title: "chore(revault): update ppr version to ${{ next_ppr_version.result }}"
+      title: "chore(revault): update ppr version to ${{ steps.next_ppr_version.outputs.result }}"

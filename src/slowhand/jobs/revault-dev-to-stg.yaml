@@ -2,40 +2,35 @@ name: Deploy revault from dev to stg (next, qa, ppr2)
 
 steps:
   - name: "revault: clone"
-    id: revault
+    id: revault_repo
     uses: actions/git-clone
     with:
       repo: LedgerHQ/revault
       fetch-depth: 1
 
   - name: "sre-argocd: clone and checkout new branch"
-    id: sre_argocd
+    id: sre_argocd_repo
     uses: actions/git-clone
     with:
       repo: LedgerHQ/sre-argocd
       fetch-depth: 1
-      new-branch: chore-deploy-revault-to-stg-${{ revault.repo.head_hash_short }}
+      new-branch: chore-deploy-revault-to-stg-${{ steps.revault_repo.outputs.head_hash_short }}
 
   - name: Patch argocd preset
-    run: SRE_ARGOCD_REPO_PATH="${{ sre_argocd.repo.local_dir }}" pnpm patch-argocd-preset
-    working-dir: ${{ revault.repo.local_dir }}
+    run: SRE_ARGOCD_REPO_PATH="${{ steps.sre_argocd_repo.outputs.repo_dir }}" pnpm patch-argocd-preset
+    working-dir: ${{ steps.revault_repo.outputs.repo_dir }}
 
-  - name: Commit and push to sre-argocd
-    id: update_sre_argocd
-    run: |
-      if git diff --quiet && git diff --cached --quiet; then
-        echo "No changes to commit in sre-argocd"
-        exit 1
-      fi
-      git add -A
-      git commit -m "chore: update revault preset"
-      git push --set-upstream origin ${{ sre_argocd.repo.new_branch }}
-    working-dir: ${{ sre_argocd.repo.local_dir }}
+  - name: Commit and push
+    uses: actions/git-commit-push-branch
+    with:
+      repo-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      branch: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      message: "chore: update revault versions in stg"
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr
     with:
       repo: LedgerHQ/sre-argocd
-      head: ${{ sre_argocd.repo.new_branch }}
+      head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
       base: main
-      title: "chore(revault): deploy revault to stg (${{ revault.repo.head_hash_short }})"
+      title: "chore(revault): deploy revault to stg (${{ steps.revault_repo.outputs.head_hash_short }})"

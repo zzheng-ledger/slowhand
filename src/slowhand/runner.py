@@ -36,9 +36,9 @@ def run_job(job: Job, *, clean: bool = True) -> None:
                 step.condition, context=context
             ):
                 logger.info("● Running step: %s", step_desc)
-                output = action.run(params, context=context)
-                if step.id and output:
-                    context.save_output(step.id, output)
+                outputs = action.run(params, context=context)
+                if step.id and outputs:
+                    context.save_step_outputs(step.id, outputs)
             else:
                 logger.info("○ Skipping step: %s", step_desc)
 

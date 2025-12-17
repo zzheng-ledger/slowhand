@@ -8,9 +8,8 @@ from jira import JIRA
 
 from slowhand.config import Settings, settings
 from slowhand.errors import SlowhandException
-from slowhand.logging import get_logger, ok, primary, success
-from slowhand.utils import random_name, run_command
-from pprint import pprint
+from slowhand.logging import get_logger, ok, primary
+from slowhand.utils import run_command
 
 from .base import Action
 

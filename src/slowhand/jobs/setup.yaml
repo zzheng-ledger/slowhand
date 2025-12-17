@@ -20,7 +20,7 @@ steps:
     run: |
       cat <<EOF
       Summary:
-      - setup git  : ${{ setup_git.git_version }}
-      - setup gh   : ${{ setup_gh.gh_version }}
-      - setup jira : ${{ setup_jira.jira_display_name}}
+      - setup git  : ${{ steps.setup_git.outputs.git_version }}
+      - setup gh   : ${{ steps.setup_gh.outputs.gh_version }}
+      - setup jira : ${{ steps.setup_jira.outputs.jira_display_name}}
       EOF

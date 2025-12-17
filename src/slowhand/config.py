@@ -11,6 +11,7 @@ from pydantic_settings import (
 
 _SETTINGS_FILE = Path.home() / ".slowhand.json"
 
+
 class GithubSettings(BaseModel):
     token: SecretStr | None = None
 

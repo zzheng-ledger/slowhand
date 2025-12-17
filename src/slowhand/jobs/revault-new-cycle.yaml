@@ -2,7 +2,7 @@ name: Prepare revault stg (next, qa, ppr2)
 
 steps:
   - name: "sre-argocd: clone and checkout new branch"
-    id: sre_argocd
+    id: sre_argocd_repo
     uses: actions/git-clone
     with:
       repo: LedgerHQ/sre-argocd
@@ -13,7 +13,7 @@ steps:
     id: revault_deploy_versions
     uses: actions/revault-find-deploy-versions
     with:
-      sre-argocd-dir: ${{ sre_argocd.repo.local_dir }}
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Ensure precondition
     if: revault_deploy_versions.stg != revault_deploy_versions.ppr || revault_deploy_versions.stg != revault_deploy_versions.prd
@@ -21,35 +21,35 @@ steps:
     with:
       message: |
         Revault versions do not match:
-        - stg : ${{ revault_deploy_versions.stg }}
-        - ppr : ${{ revault_deploy_versions.ppr }}
-        - prd : ${{ revault_deploy_versions.prd }}
+        - stg : ${{ steps.revault_deploy_versions.outputs.stg }}
+        - ppr : ${{ steps.revault_deploy_versions.outputs.ppr }}
+        - prd : ${{ steps.revault_deploy_versions.outputs.prd }}
 
   - name: Compute next version
     id: revault_next_version
     uses: actions/compute-version
     with:
-      input: ${{ revault_deploy_versions.stg }}
+      input: ${{ steps.revault_deploy_versions.outputs.stg }}
       add-minor: 1
 
   - name: Create new revault value file
     id: revault_new_cycle
     run: |
-      echo "Copying version: ${{ revault_deploy_versions.stg }} => ${{ revault_next_version.output }}"
-      cp "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ revault_deploy_versions.stg }}.yaml" \
-         "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ revault_next_version.output }}.yaml"
-      echo "old_version=${{ revault_deploy_versions.stg }}" >> $OUTPUT
-      echo "new_version=${{ revault_next_version.output }}" >> $OUTPUT
-    working-dir: ${{ sre_argocd.repo.local_dir }}
+      echo "Copying version: ${{ steps.revault_deploy_versions.outputs.stg }} => ${{ steps.revault_next_version.outputs.result }}"
+      cp "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ steps.revault_deploy_versions.outputs.stg }}.yaml" \
+         "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ steps.revault_next_version.outputs.result }}.yaml"
+      echo "old_version=${{ steps.revault_deploy_versions.outputs.stg }}" >> $OUTPUT
+      echo "new_version=${{ steps.revault_next_version.outputs.result }}" >> $OUTPUT
+    working-dir: ${{ steps.sre_argocd.ouptuts.repo_dir }}
 
   - name: Update revault deploy versions
     id: update_revault_deploy_versions
     uses: actions/revault-update-deploy-versions
     with:
-      sre-argocd-dir: ${{ sre_argocd.repo.local_dir }}
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
       target-env: stg
-      from-version: ${{ revault_new_cycle.old_version }}
-      to-version: ${{ revault_new_cycle.new_version }}
+      from-version: ${{ steps.revault_new_cycle.outputs.old_version }}
+      to-version: ${{ steps.revault_new_cycle.outputs.new_version }}
 
   - name: Commit and push
     id: push_sre_argocd
@@ -59,14 +59,14 @@ steps:
         exit 1
       fi
       git add -A
-      git commit -m "chore(revault): start new release cycle (${{ revault_new_cycle.new_version }})"
-      git push --set-upstream origin ${{ sre_argocd.repo.new_branch }}
-    working-dir: ${{ sre_argocd.repo.local_dir }}
+      git commit -m "chore(revault): start new release cycle (${{ steps.revault_new_cycle.outputs.new_version }})"
+      git push --set-upstream origin ${{ steps.sre_argocd_repo.outputs.new_branch }}
+    working-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr
     with:
       repo: LedgerHQ/sre-argocd
-      head: ${{ sre_argocd.repo.new_branch }}
+      head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
       base: main
-      title: "chore(revault): start new release cycle (${{ revault_new_cycle.new_version }})"
+      title: "chore(revault): start new release cycle (${{ steps.revault_new_cycle.outputs.new_version }})"
