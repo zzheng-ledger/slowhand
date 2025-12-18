@@ -9,10 +9,14 @@ from slowhand.models import Job
 logger = get_logger(__name__)
 
 
-def run_job(job: Job, *, clean: bool = True) -> None:
+def run_job(job: Job, *, dry_run: bool = False, clean: bool = True) -> None:
     context = Context()
     try:
-        logger.info("» Running job: %s", primary(job.name))
+        logger.info(
+            "» Running job: %s%s",
+            primary(job.name),
+            muted(" (dry-run)") if dry_run else "",
+        )
         for step in job.steps:
             if step.kind == "RunShell":
                 # Convert a `RunShell` step to an `actions/shell` action
@@ -36,14 +40,14 @@ def run_job(job: Job, *, clean: bool = True) -> None:
                 step.condition, context=context
             ):
                 logger.info("● Running step: %s", step_desc)
-                outputs = action.run(params, context=context)
+                outputs = action.run(params, context=context, dry_run=dry_run)
                 if step.id and outputs:
                     context.save_step_outputs(step.id, outputs)
             else:
                 logger.info("○ Skipping step: %s", step_desc)
 
+        logger.info("✓ Job completed successfully.")
         if clean and not settings.debug:
-            logger.info("Cleaning up...")
             context.teardown()
 
     except Exception as exc:
@@ -51,3 +55,7 @@ def run_job(job: Job, *, clean: bool = True) -> None:
         logger.info("Run dir is kept: %s", context.run_dir)
         if settings.debug:
             raise
+
+    finally:
+        if settings.debug:
+            logger.info("Dumping context state:\n%s", context.dump_state_json())

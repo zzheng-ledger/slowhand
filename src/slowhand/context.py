@@ -1,3 +1,4 @@
+import json
 import re
 import shutil
 import tempfile
@@ -19,7 +20,7 @@ class Context:
         self._run_id = random_name("run")
         self._run_dir = Path(tempfile.mkdtemp(prefix="slowhand_"))
         self._start_time = datetime.now()
-        self._store: dict[str, Any] = {}
+        self._state: dict[str, Any] = {}
 
     @property
     def run_id(self) -> str:
@@ -33,8 +34,8 @@ class Context:
     def start_time(self) -> datetime:
         return self._start_time
 
-    def _save_in_store(self, path: list[str], value: Any) -> None:
-        current = self._store
+    def _save_in_state(self, path: list[str], value: Any) -> None:
+        current = self._state
         for key in path[:-1]:
             current = current.setdefault(key, {})
             if not isinstance(current, dict):
@@ -45,7 +46,7 @@ class Context:
 
     def save_step_outputs(self, step_id: str, outputs: dict[str, Any]) -> None:
         logger.debug("Saving step outputs of %s", step_id, extra=outputs)
-        self._save_in_store(["steps", step_id, "outputs"], outputs)
+        self._save_in_state(["steps", step_id, "outputs"], outputs)
 
     def resolve(self, input: Any) -> Any:
         if isinstance(input, str):
@@ -60,7 +61,7 @@ class Context:
         return input
 
     def resolve_variable(self, var_name: str) -> str:
-        current: dict | str | None = self._store
+        current: dict | str | None = self._state
         for token in var_name.split("."):
             if not isinstance(current, dict):
                 raise SlowhandException(f"Variable canont be resolved: {var_name}")
@@ -73,7 +74,10 @@ class Context:
             )
         return str(current) if current is not None else ""
 
+    def dump_state_json(self) -> str:
+        return json.dumps(self._state, indent=2)
+
     def teardown(self):
         if self._run_dir.exists():
+            logger.info("Deleting run directory: %s", self._run_dir)
             shutil.rmtree(self._run_dir)
-            logger.debug("Deleted run directory: %s", self._run_dir)

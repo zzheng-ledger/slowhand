@@ -52,10 +52,10 @@ def jobs():
 
 
 @app.command()
-def run(name: str, clean: bool = True):
+def run(name: str, dry_run: bool = False, clean: bool = True):
     """Load and run a job"""
     job = load_job(name)
-    run_job(job, clean=clean)
+    run_job(job, dry_run=dry_run, clean=clean)
 
 
 def main():

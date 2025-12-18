@@ -36,7 +36,7 @@ class SetupGit(Action):
     name = "setup-git"
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         output = checked_run_command(
             "git",
             "--version",
@@ -59,7 +59,7 @@ class SetupGh(Action):
     name = "setup-gh"
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         gh_version_output = checked_run_command(
             "gh",
             "--version",
@@ -90,7 +90,7 @@ class SetupJira(Action):
     name = "setup-jira"
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         jira_server = settings.jira.server
         jira_email = settings.jira.email
         if not jira_server:
@@ -141,7 +141,7 @@ class SetupJobsDirs(Action):
     name = "setup-jobs-dirs"
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         if not settings.jobs_dirs:
             jobs_dir = Path.home() / "slowhand"
             settings.jobs_dirs = [str(jobs_dir)]

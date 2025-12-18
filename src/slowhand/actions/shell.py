@@ -26,30 +26,31 @@ def _load_output_file(output_filepath: Path) -> dict[str, str]:
     return output
 
 
-class ShellParams(BaseModel):
-    script: str = Field(min_length=1)
-    working_dir: str | None = Field(None, alias="working-dir")
-
-    @field_validator("working_dir")
-    @classmethod
-    def validate_working_dir(cls, value: str | None) -> str | None:
-        if value is not None:
-            path = Path(value)
-            if not path.exists():
-                raise ValueError(f"Directory does not exist: {value}")
-            if not path.is_dir():
-                raise ValueError(f"Path is not a directory: {value}")
-        return value
-
-
 class Shell(Action):
     name = "shell"
 
+    class Params(BaseModel):
+        script: str = Field(min_length=1)
+        working_dir: str | None = Field(None, alias="working-dir")
+
+        @field_validator("working_dir")
+        @classmethod
+        def validate_working_dir(cls, value: str | None) -> str | None:
+            if value is not None:
+                path = Path(value)
+                if not path.exists():
+                    raise ValueError(f"Directory does not exist: {value}")
+                if not path.is_dir():
+                    raise ValueError(f"Path is not a directory: {value}")
+            return value
+
     @override
-    def run(self, params, *, context):
-        params = ShellParams(**params)
+    def run(self, params, *, context, dry_run):
+        params = self.Params(**params)
         cwd = params.working_dir or context.run_dir
         output_filepath = context.run_dir / random_name("output")
         extra_env = {"OUTPUT": str(output_filepath)}
+        if dry_run:
+            logger.warning("Dry-run is enabled but ignored in action: %s", self.name)
         run_shell_script(params.script, cwd=cwd, extra_env=extra_env)
         return _load_output_file(output_filepath)

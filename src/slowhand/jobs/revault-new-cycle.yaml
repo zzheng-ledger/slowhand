@@ -52,16 +52,11 @@ steps:
       to-version: ${{ steps.revault_new_cycle.outputs.new_version }}
 
   - name: Commit and push
-    id: push_sre_argocd
-    run: |
-      if git diff --quiet && git diff --cached --quiet; then
-        echo "No changes to commit in sre-argocd"
-        exit 1
-      fi
-      git add -A
-      git commit -m "chore(revault): start new release cycle (${{ steps.revault_new_cycle.outputs.new_version }})"
-      git push --set-upstream origin ${{ steps.sre_argocd_repo.outputs.new_branch }}
-    working-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+    uses: actions/git-commit-push-branch
+    with:
+      repo-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      branch: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      message: "chore(revault): start new release cycle (${{ steps.revault_new_cycle.outputs.new_version }})"
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr

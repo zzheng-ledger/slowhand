@@ -26,7 +26,7 @@ class ComputeVersion(Action):
         add_patch: int = Field(0, alias="add-patch")
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         match_obj = VERSION_REGEX.match(params.input)
         major = int(match_obj.group("major"))

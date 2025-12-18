@@ -39,15 +39,11 @@ steps:
       to-version: ${{ steps.next_ppr_version.outputs.result }}
 
   - name: Commit and push
-    run: |
-      if git diff --quiet && git diff --cached --quiet; then
-        echo "No changes to commit in sre-argocd"
-        exit 1
-      fi
-      git add -A
-      git commit -m "chore(revault): update ppr version to ${{ steps.next_ppr_version.outputs.result }}"
-      git push --set-upstream origin ${{ steps.sre_argocd_repo.outputs.new_branch }}
-    working-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+    uses: actions/git-commit-push-branch
+    with:
+      repo-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      branch: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      message: "chore(revault): update ppr version to ${{ steps.next_ppr_version.outputs.result }}"
 
   - name: Create a PR in sre-argocd
     uses: actions/github-create-pr

@@ -71,7 +71,7 @@ def _safe_json_dump(value: Any) -> str:
 
 
 def _format(msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    extra = kwargs.get("extra") or {}
+    extra = (kwargs.get("extra") or {}).copy()  # don't mutate the original `extra`
     if extra:
         msg = f"{msg}\n{_safe_json_dump(extra)}"
     extra["markup"] = True

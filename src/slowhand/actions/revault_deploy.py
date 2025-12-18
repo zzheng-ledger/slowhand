@@ -99,7 +99,7 @@ class RevaultFindDeployVersions(Action):
         sre_argocd_dir: str = Field(alias="sre-argocd-dir")
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         stg_yaml_files = get_deploy_yaml_files(params.sre_argocd_dir, "stg")
         ppr_yaml_files = get_deploy_yaml_files(params.sre_argocd_dir, "ppr")
@@ -131,7 +131,7 @@ class RevaultUpdateDeployVersions(Action):
         to_version: str = Field(alias="to-version")
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         yaml_files = get_deploy_yaml_files(params.sre_argocd_dir, params.target_env)
         logger.info(

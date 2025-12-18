@@ -14,7 +14,7 @@ steps:
     with:
       repo: LedgerHQ/sre-argocd
       fetch-depth: 1
-      new-branch: chore-deploy-revault-to-stg-${{ steps.revault_repo.outputs.head_hash_short }}
+      new-branch: chore-deploy-revault-to-stg
 
   - name: Patch argocd preset
     run: SRE_ARGOCD_REPO_PATH="${{ steps.sre_argocd_repo.outputs.repo_dir }}" pnpm patch-argocd-preset
@@ -33,4 +33,4 @@ steps:
       repo: LedgerHQ/sre-argocd
       head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
       base: main
-      title: "chore(revault): deploy revault to stg (${{ steps.revault_repo.outputs.head_hash_short }})"
+      title: "chore: update revault versions in stg"

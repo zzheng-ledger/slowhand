@@ -104,7 +104,7 @@ class RevaultRevertMobileDeps(Action):
         revault_dir: str = Field(alias="revault-dir")
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         revault_dir = Path(params.revault_dir)
 
@@ -133,28 +133,6 @@ class RevaultRevertMobileDeps(Action):
                 )
                 # Update the new lines in-place
                 new_lines[i1:i2] = lines
-                """
-                old_deps = parse_deps(old_lines[i1:i2])
-                new_deps = parse_deps(new_lines[j1:j2])
-
-                updated_libs = set(old_deps.keys())
-                if updated_libs != set(new_deps.keys()):
-                    raise Exception(
-                        "Updated libs do not match: "
-                        + ", ".join(updated_libs)
-                        + " vs. "
-                        + ", ".join(new_deps.keys())
-                    )
-
-                deps = {
-                    # Take the new version if the lib is also used in other non-mobile packages.
-                    # If the lib is only used by mobile, keep the old version.
-                    lib: new_deps[lib] if lib in non_mobile_deps else old_deps[lib]
-                    for lib in updated_libs
-                }
-                for i in range(j1, j2):
-                    new_lines[i] = apply_dep(new_lines[i], deps)
-                """
             else:
                 raise SlowhandException(f"Unexpected diff tag: {tag}")
 

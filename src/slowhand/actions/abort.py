@@ -18,7 +18,7 @@ class Abort(Action):
         message: str
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         message = dedent(params.message)
         raise SlowhandException(f"Aborted with message:\n{message}")

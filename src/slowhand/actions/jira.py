@@ -36,12 +36,6 @@ def _to_value(value: str, *, child: dict[str, str] | None = None) -> dict[str, A
     return {"value": value} | ({"child": child} if child else {})
 
 
-class JiraCreateMoTicketParams(BaseModel):
-    component: str
-    version: str
-    pr_link: str = Field(alias="pr-link", pattern=r"^https://github\.com/.+$")
-
-
 class JiraCreateMoTicket(Action):
     """
     See an example MO ticket: https://ledgerhq.atlassian.net/browse/MO-12335
@@ -49,9 +43,14 @@ class JiraCreateMoTicket(Action):
 
     name = "jira-create-mo-ticket"
 
+    class Params(BaseModel):
+        component: str
+        version: str
+        pr_link: str = Field(alias="pr-link", pattern=r"^https://github\.com/.+$")
+
     @override
-    def run(self, params, *, context):
-        params = JiraCreateMoTicketParams(**params)
+    def run(self, params, *, context, dry_run):
+        params = self.Params(**params)
 
         jira_server = settings.jira.server
         jira_email = settings.jira.email
@@ -102,11 +101,16 @@ class JiraCreateMoTicket(Action):
             },
         }
 
-        logger.info("Creating MO ticket to deploy: %s", component_version)
-        mo_ticket = jira.create_issue(fields=ticket_fields)
-        logger.info("MO ticket created: %s", mo_ticket.key)
+        if not dry_run:
+            logger.info("Creating MO ticket to deploy: %s", component_version)
+            mo_ticket = jira.create_issue(fields=ticket_fields)
+            issue_key = mo_ticket.key
+            logger.info("MO ticket created: %s", issue_key)
+        else:
+            logger.warning("Dry-run: create MO ticket in Jira...")
+            issue_key = "<ISSUE_KEY>"
 
         return {
-            "issue_key": mo_ticket.key,
-            "issue_link": f"{jira_server}/browse/{mo_ticket.key}",
+            "issue_key": issue_key,
+            "issue_link": f"{jira_server}/browse/{issue_key}",
         }

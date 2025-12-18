@@ -36,7 +36,7 @@ class GitClone(Action):
             return opts
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         repo_dir = str(context.run_dir / random_name(params.bare_name))
         run_command("git", "clone", params.github_url, repo_dir, *params.clone_opts)
@@ -60,7 +60,7 @@ class GitCommitPushBranch(Action):
         branch: str
 
     @override
-    def run(self, params, *, context):
+    def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         if params.branch in ("main", "master"):
             raise SlowhandException(f"Pushing to {params.branch} branch is disallowed")
@@ -83,5 +83,8 @@ class GitCommitPushBranch(Action):
 
         run_in_repo("git", "add", "-A")
         run_in_repo("git", "commit", "-m", params.message)
-        run_in_repo("git", "push", "--set-upstream", "origin", params.branch)
+        if not dry_run:
+            run_in_repo("git", "push", "--set-upstream", "origin", params.branch)
+        else:
+            logger.warning("Dry-run: git push ...")
         return {}
