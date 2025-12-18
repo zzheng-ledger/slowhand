@@ -23,6 +23,13 @@ def config():
 
 
 @app.command()
+def version():
+    """Print version"""
+
+    print(f"slowhand version {VERSION}")
+
+
+@app.command()
 def info():
     """Print version and tools info"""
 
