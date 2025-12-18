@@ -1,4 +1,4 @@
-name: Deploy revault from stg to ppr
+name: Promote revault stg to ppr
 
 steps:
   - name: "sre-argocd: clone and checkout new branch"
@@ -7,7 +7,7 @@ steps:
     with:
       repo: LedgerHQ/sre-argocd
       fetch-depth: 1
-      new-branch: chore-deploy-revault-stg-to-ppr
+      new-branch: chore-promote-revault-stg-to-ppr
 
   - name: Find revault deploy versions
     id: deploy_versions
@@ -22,7 +22,7 @@ steps:
       input: ${{ steps.deploy_versions.outputs.ppr }}
       add-minor: 1
 
-  - name: Ensure precondition
+  - name: Ensure next ppr version matches stg version
     if: steps.next_ppr_version.outputs.result != steps.deploy_versions.outputs.stg
     uses: actions/abort
     with:
@@ -46,6 +46,7 @@ steps:
       message: "chore(revault): update ppr version to ${{ steps.next_ppr_version.outputs.result }}"
 
   - name: Create a PR in sre-argocd
+    id: sre_argocd_pr
     uses: actions/github-create-pr
     with:
       repo: LedgerHQ/sre-argocd

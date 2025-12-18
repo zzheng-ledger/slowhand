@@ -1,0 +1,73 @@
+name: Promote revault ppr to prd
+
+steps:
+  - name: "sre-argocd: clone and checkout new branch"
+    id: sre_argocd_repo
+    uses: actions/git-clone
+    with:
+      repo: LedgerHQ/sre-argocd
+      fetch-depth: 1
+      new-branch: chore-promote-revault-ppr-to-prd
+
+  - name: Find revault deploy versions
+    id: deploy_versions
+    uses: actions/revault-find-deploy-versions
+    with:
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+
+  - name: Compute next prd version
+    id: next_prd_version
+    uses: actions/compute-version
+    with:
+      input: ${{ steps.deploy_versions.outputs.prd }}
+      add-minor: 1
+
+  - name: Ensure next prd version matches ppr version
+    if: steps.next_prd_version.outputs.result != steps.deploy_versions.outputs.ppr
+    uses: actions/abort
+    with:
+      message: |
+        Next prd version does not match ppr version:
+        ${{ steps.next_prd_version.outputs.result }} != ${{ steps.deploy_versions.outputs.ppr }}
+
+  - name: Update prd version
+    uses: actions/revault-update-deploy-versions
+    with:
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      target-env: prd
+      from-version: ${{ steps.deploy_versions.outputs.prd }}
+      to-version: ${{ steps.next_prd_version.outputs.result }}
+
+  - name: Commit and push
+    uses: actions/git-commit-push-branch
+    with:
+      repo-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      branch: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      message: "chore(revault): update prd version to ${{ steps.next_prd_version.outputs.result }}"
+
+  - name: Create a PR in sre-argocd
+    id: sre_argocd_pr
+    uses: actions/github-create-pr
+    with:
+      repo: LedgerHQ/sre-argocd
+      head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      base: main
+      title: "chore(revault): update prd version to ${{ steps.next_prd_version.outputs.result }}"
+
+  - name: Create MO ticket in Jira
+    id: mo_ticket
+    uses: actions/jira-create-mo-ticket
+    with:
+      component: revault
+      version: ${{ steps.next_prd_version.outputs.result }}
+      pr-link: ${{ steps.sre_argocd_pr.outputs.pr_link }}
+
+  - name: Edit PR to include MO ticket
+    uses: actions/github-edit-pr
+    with:
+      pr-link: ${{ steps.sre_argocd_pr.outputs.pr_link }}
+      title: >
+        chore(revault): update prd version to ${{ steps.next_prd_version.outputs.result }}
+        [${{ steps.mo_ticket.outputs.issue_key }}]
+      body: "MO ticket: ${{ steps.mo_ticket.outputs.issue_link }}"
+

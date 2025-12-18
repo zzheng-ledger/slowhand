@@ -1,4 +1,4 @@
-name: Deploy revault from dev to stg (next, qa, ppr2)
+name: Deploy revault dev to stg (next, qa, ppr2)
 
 steps:
   - name: "revault: clone"

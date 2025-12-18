@@ -3,7 +3,7 @@ from slowhand.errors import SlowhandException
 from .abort import Abort
 from .base import Action, ActionParams
 from .git import GitClone, GitCommitPushBranch
-from .github import GithubCreatePr
+from .github import GithubCreatePr, GithubEditPr
 from .jira import JiraCreateMoTicket
 from .revault_deploy import RevaultFindDeployVersions, RevaultUpdateDeployVersions
 from .revault_deps import RevaultRevertMobileDeps
@@ -21,6 +21,7 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         GitClone,
         GitCommitPushBranch,
         GithubCreatePr,
+        GithubEditPr,
         JiraCreateMoTicket,
         Shell,
         RevaultFindDeployVersions,
