@@ -132,7 +132,7 @@ class Context:
         checkpoint_file.write_text(json.dumps(self._state, indent=2))
         return str(checkpoint_file)
 
-    def delete_checkpoint(self) -> str:
+    def delete_checkpoint(self) -> None:
         checkpoint_file = _get_checkpoint_file()
         if checkpoint_file.is_file():
             checkpoint_file.unlink()

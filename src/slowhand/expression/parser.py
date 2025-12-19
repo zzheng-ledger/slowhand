@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from slowhand.context import Context
 from slowhand.expression.lexer import (
@@ -18,6 +18,12 @@ class VariableNode:
     def evaluate(self, context: Context) -> str:
         return context.resolve_variable(self.name)
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": type(self).__name__,
+            "name": self.name,
+        }
+
 
 @dataclass
 class StringNode:
@@ -25,6 +31,12 @@ class StringNode:
 
     def evaluate(self, context: Context) -> str:
         return self.value
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": type(self).__name__,
+            "value": self.value,
+        }
 
 
 @dataclass
@@ -41,6 +53,14 @@ class EqNeqNode:
         else:
             return left != right
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": type(self).__name__,
+            "left": self.left.to_dict(),
+            "op": self.op,
+            "right": self.right.to_dict(),
+        }
+
 
 @dataclass
 class AndOrNode:
@@ -55,6 +75,14 @@ class AndOrNode:
             return bool(left and right)
         else:
             return bool(left or right)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": type(self).__name__,
+            "left": self.left.to_dict(),
+            "op": self.op,
+            "right": self.right.to_dict(),
+        }
 
 
 ASTNode = VariableNode | StringNode | EqNeqNode | AndOrNode
@@ -121,4 +149,6 @@ def _parse_or(tokens: TokenList) -> ASTNode:
 
 
 def parse_to_ast(tokens: list[Token]) -> ASTNode:
+    # TODO: Use the shunting yard algorithm.
+    # See: https://en.wikipedia.org/wiki/Shunting_yard_algorithm
     return _parse_or(TokenList(tokens))

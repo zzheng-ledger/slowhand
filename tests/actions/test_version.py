@@ -1,7 +1,6 @@
-from contextvars import Context
-
 import pytest
 
+from slowhand.context import Context
 from slowhand.actions import create_action
 from slowhand.errors import SlowhandException
 
@@ -14,8 +13,8 @@ def test_compute_version():
         "add-minor": -1,
         "add-patch": 9,
     }
-    context = Context()
-    output = action.run(params, context=context)
+    context = Context("fake-job-id")
+    output = action.run(params, context=context, dry_run=False)
     assert output["result"] == "2.1.12"
 
 
@@ -26,7 +25,7 @@ def test_compute_version_without_patch():
         "add-patch": 3,
     }
     context = Context("fake-job-id")
-    output = action.run(params, context=context)
+    output = action.run(params, context=context, dry_run=False)
     assert output["result"] == "1.2.3"
 
 
@@ -37,7 +36,7 @@ def test_patch_number_stays_none():
         "add-patch": 0,
     }
     context = Context("fake-job-id")
-    output = action.run(params, context=context)
+    output = action.run(params, context=context, dry_run=False)
     assert output["result"] == "1.2"
 
 
@@ -49,7 +48,7 @@ def test_negative_version_component():
     }
     context = Context("fake-job-id")
     with pytest.raises(SlowhandException):
-        action.run(params, context=context)
+        action.run(params, context=context, dry_run=False)
 
 
 def test_invalid_patch_number():
@@ -60,4 +59,4 @@ def test_invalid_patch_number():
     }
     context = Context("fake-job-id")
     with pytest.raises(SlowhandException):
-        action.run(params, context=context)
+        action.run(params, context=context, dry_run=False)
