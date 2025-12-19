@@ -1,4 +1,4 @@
-# slowhand
+# 🎸 slowhand
 
 ```bash
 pdm sync
@@ -14,4 +14,13 @@ SLOWHAND_DEBUG=1 pdm run slowhand run setup
 ```bash
 pdm build
 pip install dist/slowhand-<version>-py3-none-any.whl --user --force-reinstall
+
+# slowhand should have been installed in `~/.local/bin/`
+slowhand version
+```
+
+or just run:
+
+```bash
+./build-install.sh
 ```
