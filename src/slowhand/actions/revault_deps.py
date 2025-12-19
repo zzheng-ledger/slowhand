@@ -137,3 +137,4 @@ class RevaultRevertMobileDeps(Action):
                 raise SlowhandException(f"Unexpected diff tag: {tag}")
 
         mobile_package_json.write_text("\n".join(new_lines))
+        return {}

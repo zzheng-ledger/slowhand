@@ -30,7 +30,6 @@ steps:
       pnpm run typecheck
       pnpm run spellcheck
       pnpm run depscheck
-      pnpm run check-convention
     working-dir: ${{ steps.revault_repo.outputs.repo_dir }}
 
   - name: Commit and push

@@ -9,7 +9,14 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-_SETTINGS_FILE = Path.home() / ".slowhand.json"
+_APP_USER_DIR = Path.home() / ".slowhand"
+
+_APP_CONFIG_FILE = _APP_USER_DIR / "config.json"
+
+
+def ensure_app_user_dir() -> Path:
+    _APP_USER_DIR.mkdir(parents=True, exist_ok=True)
+    return _APP_USER_DIR
 
 
 class GithubSettings(BaseModel):
@@ -56,7 +63,7 @@ class Settings(BaseSettings):
             env_settings,
             JsonConfigSettingsSource(
                 settings_cls,
-                json_file=_SETTINGS_FILE,
+                json_file=_APP_CONFIG_FILE,
             ),
         )
 
@@ -69,8 +76,9 @@ class Settings(BaseSettings):
             },
             indent=2,
         )
-        _SETTINGS_FILE.write_text(text)
-        return str(_SETTINGS_FILE)
+        _APP_CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _APP_CONFIG_FILE.write_text(text)
+        return str(_APP_CONFIG_FILE)
 
 
 def _load_settings() -> Settings:

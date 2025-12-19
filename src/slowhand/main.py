@@ -7,7 +7,7 @@ from slowhand.config import settings
 from slowhand.loader import load_builtin_jobs, load_job, load_user_jobs
 from slowhand.logging import configure_logging, muted, primary, secondary
 from slowhand.models import Job
-from slowhand.runner import run_job
+from slowhand.runner import resume_job, run_job
 from slowhand.tools import get_gh_info, get_git_info
 from slowhand.version import VERSION
 
@@ -59,10 +59,17 @@ def jobs():
 
 
 @app.command()
-def run(name: str, dry_run: bool = False, clean: bool = True):
+def run(job_id: str, dry_run: bool = False, clean: bool = True):
     """Load and run a job"""
-    job = load_job(name)
+    job = load_job(job_id)
     run_job(job, dry_run=dry_run, clean=clean)
+
+
+@app.command()
+def resume(job_id: str, dry_run: bool = False, clean: bool = True):
+    """Resume a previously failed job from its checkpoint"""
+    job = load_job(job_id)
+    resume_job(job, dry_run=dry_run, clean=clean)
 
 
 def main():

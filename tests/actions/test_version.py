@@ -25,7 +25,7 @@ def test_compute_version_without_patch():
         "input": "1.2",
         "add-patch": 3,
     }
-    context = Context()
+    context = Context("fake-job-id")
     output = action.run(params, context=context)
     assert output["result"] == "1.2.3"
 
@@ -36,7 +36,7 @@ def test_patch_number_stays_none():
         "input": "1.2",
         "add-patch": 0,
     }
-    context = Context()
+    context = Context("fake-job-id")
     output = action.run(params, context=context)
     assert output["result"] == "1.2"
 
@@ -47,7 +47,7 @@ def test_negative_version_component():
         "input": "1.2",
         "add-minor": -3,
     }
-    context = Context()
+    context = Context("fake-job-id")
     with pytest.raises(SlowhandException):
         action.run(params, context=context)
 
@@ -58,6 +58,6 @@ def test_invalid_patch_number():
         "input": "1.2",
         "add-patch": -1,
     }
-    context = Context()
+    context = Context("fake-job-id")
     with pytest.raises(SlowhandException):
         action.run(params, context=context)
