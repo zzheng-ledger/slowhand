@@ -1,5 +1,6 @@
 import pytest
 
+from slowhand.actions import ActionParams
 from slowhand.context import Context
 from slowhand.actions import create_action
 from slowhand.errors import SlowhandException
@@ -7,7 +8,7 @@ from slowhand.errors import SlowhandException
 
 def test_compute_version():
     action = create_action("actions/compute-version")
-    params = {
+    params: ActionParams = {
         "input": "1.2.3",
         "add-major": 1,
         "add-minor": -1,
@@ -20,7 +21,7 @@ def test_compute_version():
 
 def test_compute_version_without_patch():
     action = create_action("actions/compute-version")
-    params = {
+    params: ActionParams = {
         "input": "1.2",
         "add-patch": 3,
     }
@@ -31,7 +32,7 @@ def test_compute_version_without_patch():
 
 def test_patch_number_stays_none():
     action = create_action("actions/compute-version")
-    params = {
+    params: ActionParams = {
         "input": "1.2",
         "add-patch": 0,
     }
@@ -42,7 +43,7 @@ def test_patch_number_stays_none():
 
 def test_negative_version_component():
     action = create_action("actions/compute-version")
-    params = {
+    params: ActionParams = {
         "input": "1.2",
         "add-minor": -3,
     }
@@ -53,7 +54,7 @@ def test_negative_version_component():
 
 def test_invalid_patch_number():
     action = create_action("actions/compute-version")
-    params = {
+    params: ActionParams = {
         "input": "1.2",
         "add-patch": -1,
     }

@@ -29,6 +29,8 @@ class ComputeVersion(Action):
     def run(self, params, *, context, dry_run):
         params = self.Params(**params)
         match_obj = VERSION_REGEX.match(params.input)
+        if not match_obj:
+            raise SlowhandException(f"Invalid version input: {params.input}")
         major = int(match_obj.group("major"))
         minor = int(match_obj.group("minor"))
         patch_raw = match_obj.group("patch")

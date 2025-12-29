@@ -143,8 +143,7 @@ class SetupJobsDirs(Action):
     @override
     def run(self, params, *, context, dry_run):
         if not settings.jobs_dirs:
-            jobs_dir = Path.home() / "slowhand"
-            settings.jobs_dirs = [str(jobs_dir)]
+            settings.jobs_dirs = [Path.home() / "slowhand"]
             save_user_settings(settings)
         jobs_dirs = ", ".join([primary(d) for d in settings.jobs_dirs])
         logger.info("%s Using user jobs dirs: %s", ok(), jobs_dirs)

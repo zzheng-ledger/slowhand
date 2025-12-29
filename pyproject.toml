@@ -57,3 +57,7 @@ play.call = "slowhand.play_nogit:main"
 source = "scm"
 write_to = "slowhand/VERSION"
 
+[tool.mypy]
+python_version = "3.13"
+check_untyped_defs = true
+plugins = ["pydantic.mypy"]
