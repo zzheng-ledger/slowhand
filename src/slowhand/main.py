@@ -2,6 +2,7 @@ from textwrap import indent
 
 import typer
 from rich import print as rprint
+import yaml
 
 from slowhand.config import settings
 from slowhand.loader import load_builtin_jobs, load_job, load_user_jobs
@@ -56,6 +57,22 @@ def jobs():
 
     print_jobs("user", user_jobs)
     print_jobs("builtin", builtin_jobs)
+
+
+@app.command()
+def show(job_id: str, brief: bool = False):
+    """Show detail of a job"""
+    job = load_job(job_id)
+    if brief:
+        job_data = {
+            "job_id": job.job_id,
+            "source": job.source,
+            "name": job.name,
+            "steps": [step.name for step in job.steps],
+        }
+    else:
+        job_data = job.model_dump()
+    print(yaml.dump(job_data))
 
 
 @app.command()

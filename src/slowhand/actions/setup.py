@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-from textwrap import dedent
 from typing import override
 
 from rich.prompt import Prompt
@@ -15,16 +14,52 @@ from .base import Action
 
 logger = get_logger(__name__)
 
+_GIT_HELP = """
+You need to have 'git' installed:
 
-def checked_run_command(*args: str, prompt_on_error: str) -> str:
+    sudo apt update
+    sudo apt install -y git
+"""
+
+_GH_HELP = """
+You need to have 'gh' installed:
+
+    https://cli.github.com
+"""
+
+_GH_PAT_HELP = """
+You need to have a PAT (Personal Access Token) to authenticate in Github.com.
+Go create one and save it in the `GH_TOKEN` or `GITHUB_TOKEN` env var:
+
+    https://github.com/settings/tokens
+
+Note: Your PAT must have the 'read:org', 'read:packages' and 'repo' scopes,
+and must be authorized via SSO for the organization.
+
+You can check your PAT with: `gh auth status`
+"""
+
+_JIRA_API_TOKEN_HELP = """
+You need to have a Jira API token to access Jira (for creating tickets).
+
+    https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+
+- Authenticate in https://id.atlassian.com
+- Create an API token (don't use scopes)
+- Specify API token name and expiration
+- Create token, and save it in env var: `JIRA_API_TOKEN`
+"""
+
+
+def checked_run_command(*args: str, help: str) -> str:
     try:
         return run_command(*args)
     except Exception as exc:
         command = " ".join(args)
-        message = f"Fail to run `{command}`: {exc}"
-        logger.error(message)
-        logger.info(dedent(prompt_on_error))
-        raise SlowhandException(message)
+        error_message = f"Fail to run `{command}`: {exc}"
+        logger.error(error_message)
+        logger.info(help)
+        raise SlowhandException(error_message)
 
 
 def save_user_settings(settings: Settings):
@@ -37,16 +72,7 @@ class SetupGit(Action):
 
     @override
     def run(self, params, *, context, dry_run):
-        output = checked_run_command(
-            "git",
-            "--version",
-            prompt_on_error="""
-                To install git, run:
-
-                    sudo apt update
-                    sudo apt install -y git
-            """,
-        )
+        output = checked_run_command("git", "--version", help=_GIT_HELP)
         match_obj = re.search(r"git version (?P<version>[\d\-\.]+)", output)
         if not match_obj:
             raise SlowhandException(f"Unknown output: {output}")
@@ -60,27 +86,14 @@ class SetupGh(Action):
 
     @override
     def run(self, params, *, context, dry_run):
-        gh_version_output = checked_run_command(
-            "gh",
-            "--version",
-            prompt_on_error="To install gh, see: https://cli.github.com",
-        )
+        gh_version_output = checked_run_command("gh", "--version", help=_GH_HELP)
         match_obj = re.search(r"gh version (?P<version>[\d\-\.]+)", gh_version_output)
         if not match_obj:
             raise SlowhandException(f"Unknown output: {gh_version_output}")
         gh_version = match_obj.group("version")
         logger.info("%s gh version: %s", ok(), primary(gh_version))
 
-        checked_run_command(
-            "gh",
-            "auth",
-            "status",
-            prompt_on_error="""
-                You are not authenticated in Github.com with a PAT (personal access token).
-                Go create one and save it in `GH_TOKEN` or `GITHUB_TOKEN`:
-                https://github.com/settings/tokens
-            """,
-        )
+        checked_run_command("gh", "auth", "status", help=_GH_PAT_HELP)
         logger.info("%s You are authenticated in Github.com", ok())
 
         return {"gh_version": gh_version}
@@ -105,19 +118,7 @@ class SetupJira(Action):
 
         jira_api_token = settings.jira.api_token
         if not jira_api_token:
-            logger.info(
-                dedent(
-                    """
-                    Jira API token is not configured.
-                    See: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
-
-                    - Authenticate in https://id.atlassian.com
-                    - Create API token (don't use scopes)
-                    - Specify API token name and expiration
-                    - Create token, and save it in env var: `JIRA_API_TOKEN`
-                    """
-                )
-            )
+            logger.info(_JIRA_API_TOKEN_HELP)
             raise SlowhandException("Jira API token is not configured")
 
         jira = JIRA(
