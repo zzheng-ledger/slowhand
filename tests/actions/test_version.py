@@ -1,8 +1,7 @@
 import pytest
 
-from slowhand.actions import ActionParams
+from slowhand.actions import ActionParams, create_action
 from slowhand.context import Context
-from slowhand.actions import create_action
 from slowhand.errors import SlowhandException
 
 

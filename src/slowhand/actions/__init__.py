@@ -23,7 +23,6 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         GithubCreatePr,
         GithubEditPr,
         JiraCreateMoTicket,
-        Shell,
         RevaultFindDeployVersions,
         RevaultUpdateDeployVersions,
         RevaultRevertMobileDeps,
@@ -31,6 +30,7 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         SetupGh,
         SetupJira,
         SetupJobsDirs,
+        Shell,
     )
 }
 

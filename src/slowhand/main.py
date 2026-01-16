@@ -1,8 +1,8 @@
 from textwrap import indent
 
 import typer
-from rich import print as rprint
 import yaml
+from rich import print as rprint
 
 from slowhand.config import settings
 from slowhand.loader import load_builtin_jobs, load_job, load_user_jobs

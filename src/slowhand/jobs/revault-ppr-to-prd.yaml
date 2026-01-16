@@ -71,3 +71,13 @@ steps:
         [${{ steps.mo_ticket.outputs.issue_key }}]
       body: "MO ticket: ${{ steps.mo_ticket.outputs.issue_link }}"
 
+  - name: Send message to changes-vault-prod Slack channel
+    uses: actions/stack-send-message
+    with:
+      message: |
+        Hi! I am gonna deploy revault 1.19 to PRD:
+
+        - PR on sre-argocd: ${{ steps.sre_argocd_pr.outputs.pr_link }}
+        - MO ticket: ${{ steps.mo_ticket.outputs.issue_link }}
+
+        Thanks!

@@ -42,8 +42,9 @@ slow.call = "slowhand.main:main"
 
 typecheck.cmd = "mypy src tests --warn-unused-ignores"
 format.composite = [
-    # See: https://docs.astral.sh/ruff/formatter/#sorting-imports
     "ruff check --fix-only --show-fixes src tests",
+    # See: https://docs.astral.sh/ruff/formatter/#sorting-imports
+    "ruff check --select I --fix --show-fixes src tests",
     "ruff format src tests",
 ]
 

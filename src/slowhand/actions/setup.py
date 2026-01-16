@@ -1,9 +1,9 @@
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import override
 
-from rich.prompt import Prompt
 from jira import JIRA
+from rich.prompt import Prompt
 
 from slowhand.config import Settings, settings
 from slowhand.errors import SlowhandException
