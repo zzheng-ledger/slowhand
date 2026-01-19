@@ -37,11 +37,17 @@ class JiraSettings(BaseModel):
         return {"api_token": True}
 
 
+class SlackSettings(BaseModel):
+    api_token: SecretStr | None = None
+    my_member_id: str | None = None
+
+
 class Settings(BaseSettings):
     debug: bool = False
     jobs_dirs: list[Path] = []
     github: GithubSettings = GithubSettings()
     jira: JiraSettings = JiraSettings()
+    slack: SlackSettings = SlackSettings()
 
     model_config = SettingsConfigDict(
         env_prefix="SLOWHAND_",
@@ -84,6 +90,11 @@ class Settings(BaseSettings):
 def _load_settings() -> Settings:
     settings = Settings()
 
+    # Allow to enable DEBUG mode with a simple env var `DEBUG=1`
+    debug = os.environ.get("DEBUG", "").lower()
+    if debug in ("1", "true", "on", "yes"):
+        settings.debug = True
+
     github_token = os.environ.get("GITHUB_TOKEN")
     if github_token:
         settings.github.token = SecretStr(github_token)
@@ -91,6 +102,14 @@ def _load_settings() -> Settings:
     jira_api_token = os.environ.get("JIRA_API_TOKEN")
     if jira_api_token:
         settings.jira.api_token = SecretStr(jira_api_token)
+
+    slack_api_token = os.environ.get("SLACK_API_TOKEN")
+    if slack_api_token:
+        settings.slack.api_token = SecretStr(slack_api_token)
+
+    slack_my_member_id = os.environ.get("SLACK_MY_MEMBER_ID")
+    if slack_my_member_id:
+        settings.slack.my_member_id = slack_my_member_id
 
     return settings
 

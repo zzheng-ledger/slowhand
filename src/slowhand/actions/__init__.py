@@ -9,6 +9,7 @@ from .revault_deploy import RevaultFindDeployVersions, RevaultUpdateDeployVersio
 from .revault_deps import RevaultRevertMobileDeps, RevaultRevertPinnedDeps
 from .setup import SetupGh, SetupGit, SetupJira, SetupJobsDirs
 from .shell import Shell
+from .slack import SlackSendMessage
 from .version import ComputeVersion
 
 __all__ = ("Action", "ActionParams", "create_action")
@@ -32,6 +33,7 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         SetupJira,
         SetupJobsDirs,
         Shell,
+        SlackSendMessage,
     )
 }
 
