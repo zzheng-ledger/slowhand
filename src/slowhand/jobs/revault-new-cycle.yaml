@@ -35,12 +35,14 @@ steps:
   - name: Create new revault value file
     id: revault_new_cycle
     run: |
-      echo "Copying version: ${{ steps.revault_deploy_versions.outputs.stg }} => ${{ steps.revault_next_version.outputs.result }}"
-      cp "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ steps.revault_deploy_versions.outputs.stg }}.yaml" \
-         "deploy/platform-2220-cluster/applications/vault/releases/revault-${{ steps.revault_next_version.outputs.result }}.yaml"
-      echo "old_version=${{ steps.revault_deploy_versions.outputs.stg }}" >> $OUTPUT
-      echo "new_version=${{ steps.revault_next_version.outputs.result }}" >> $OUTPUT
-    working-dir: ${{ steps.sre_argocd.ouptuts.repo_dir }}
+      releases_dir="deploy/platform-2220-cluster/applications/vault/releases"
+      old_version="${{ steps.revault_deploy_versions.outputs.stg }}"
+      new_version="${{ steps.revault_next_version.outputs.result }}"
+      echo "Copying version: ${old_version} => ${new_version}"
+      cp "${releases_dir}/revault-${old_version}.yaml" "${releases_dir}/revault-${new_version}.yaml"
+      echo "old_version=${old_version}" >> $OUTPUT
+      echo "new_version=${new_version}" >> $OUTPUT
+    working-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Update revault deploy versions
     id: update_revault_deploy_versions
