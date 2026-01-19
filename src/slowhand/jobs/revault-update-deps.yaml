@@ -1,5 +1,11 @@
 name: Prepare revault stg (next, qa, ppr2)
 
+inputs:
+  pin:
+    type: string
+    description: comma-separated keyword(s) of libraries to pin
+    required: false
+
 steps:
   - name: "revault: clone and checkout new branch"
     id: revault_repo
@@ -12,6 +18,13 @@ steps:
   - name: Update dependencies
     run: pnpm update -r
     working-dir: ${{ steps.revault_repo.outputs.repo_dir }}
+
+  - name: Revert upgrades of pinned libraries
+    if: inputs.pin
+    uses: actions/revault-revert-pinned-deps
+    with:
+      revault-dir: ${{ steps.revault_repo.outputs.repo_dir }}
+      pin: ${{ inputs.pin }}
 
   - name: Revert changes in mobile package
     uses: actions/revault-revert-mobile-deps
@@ -28,6 +41,7 @@ steps:
 
   - name: Format and run static checks
     run: |
+      find . -name ".eslintcache" -type f -delete
       # to make it faster, do not run `test`
       pnpm run format
       pnpm run lint

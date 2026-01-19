@@ -15,7 +15,7 @@ steps:
     with:
       sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
-  - name: Ensure precondition
+  - name: Abort if precondition is not met
     if: revault_deploy_versions.stg != revault_deploy_versions.ppr || revault_deploy_versions.stg != revault_deploy_versions.prd
     uses: actions/abort
     with:

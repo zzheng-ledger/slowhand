@@ -22,7 +22,7 @@ steps:
       input: ${{ steps.deploy_versions.outputs.ppr }}
       add-minor: 1
 
-  - name: Ensure next ppr version matches stg version
+  - name: Abort if next ppr version does not match stg version
     if: steps.next_ppr_version.outputs.result != steps.deploy_versions.outputs.stg
     uses: actions/abort
     with:

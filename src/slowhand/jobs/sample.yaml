@@ -1,9 +1,21 @@
 name: Sample Job
 
-# TODO: params
+inputs:
+  strParam:
+    description: "A required string parameter"
+    type: string
+    required: true
+    default: "foo bar"
+  intParam:
+    description: "An optional int parameter"
+    type: int
+    required: false
+  boolParam:
+    type: bool
+    required: true
 
 steps:
-  - name: Clone revault repo
+  - name: Clone git repo
     id: revault_repo
     uses: actions/git-clone
     with:

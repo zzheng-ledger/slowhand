@@ -1,4 +1,5 @@
 from textwrap import indent
+from typing import Annotated
 
 import typer
 import yaml
@@ -64,22 +65,50 @@ def show(job_id: str, brief: bool = False):
     """Show detail of a job"""
     job = load_job(job_id)
     if brief:
-        job_data = {
-            "job_id": job.job_id,
-            "source": job.source,
-            "name": job.name,
-            "steps": [step.name for step in job.steps],
-        }
+        rprint(f"{primary(job.job_id)} : {job.name}")
+        rprint(muted(job.source))
+        print()
+        if job.inputs:
+            rprint(secondary("Inputs:"))
+            for name, input in job.inputs.items():
+                rprint(f"{name} {muted(input.type)}")
+                if input.description:
+                    rprint(muted(f"    {input.description}"))
+            print()
+        rprint(secondary("Steps:"))
+        for i, step in enumerate(job.steps):
+            rprint(muted(f"{i + 1:2}.") + " " + step.name)
+        print()
     else:
         job_data = job.model_dump()
-    print(yaml.dump(job_data))
+        print(yaml.dump(job_data))
 
 
 @app.command()
-def run(job_id: str, dry_run: bool = False, clean: bool = True):
+def run(
+    job_id: str,
+    input_args: Annotated[
+        list[str] | None,
+        typer.Option("-I", "--input", help="Job inputs in <key>=<value> format"),
+    ] = None,
+    dry_run: bool = False,
+    clean: bool = True,
+):
     """Load and run a job"""
+    # Parse job inputs.
+    inputs = {}
+    for input_arg in input_args or []:
+        tokens = input_arg.split("=", 1)
+        if len(tokens) != 2:
+            raise typer.BadParameter(
+                f"Input must be in format <key>=<value>: {input_arg}"
+            )
+        key = tokens[0]
+        value = tokens[1]
+        inputs[key] = value
+
     job = load_job(job_id)
-    run_job(job, dry_run=dry_run, clean=clean)
+    run_job(job, inputs=inputs, dry_run=dry_run, clean=clean)
 
 
 @app.command()

@@ -99,6 +99,10 @@ class Context:
         outputs = _get_variable(self._state, f"steps.{step_id}.outputs")
         return outputs is not None
 
+    def save_inputs(self, inputs: dict[str, Any]) -> None:
+        logger.debug("Saving inputs", extra=inputs)
+        _set_variable(self._state, "inputs", inputs)
+
     def save_step_outputs(self, step_id: str, outputs: dict[str, Any]) -> None:
         logger.debug("Saving step outputs of %s", step_id, extra=outputs)
         _set_variable(self._state, f"steps.{step_id}.outputs", outputs)

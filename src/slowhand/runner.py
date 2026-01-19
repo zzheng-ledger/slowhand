@@ -99,8 +99,11 @@ def _run_job_with_context(
             logger.info("Dumping context state:\n%s", context.dump_state_json())
 
 
-def run_job(job: Job, *, dry_run: bool = False, clean: bool = True) -> None:
+def run_job(
+    job: Job, inputs: dict[str, str], *, dry_run: bool = False, clean: bool = True
+) -> None:
     context = Context(job.job_id)
+    context.save_inputs(job.parse_inputs(inputs))
     _run_job_with_context(job, context, dry_run=dry_run, clean=clean)
 
 
