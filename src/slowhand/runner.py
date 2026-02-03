@@ -1,6 +1,5 @@
-import hashlib
-import re
-import unicodedata
+import json
+from textwrap import indent
 
 from slowhand.actions import create_action
 from slowhand.config import settings
@@ -13,26 +12,40 @@ from slowhand.models import Job, JobStep
 logger = get_logger(__name__)
 
 
-def _slugify(text: str) -> str:
-    value = (
-        unicodedata.normalize("NFKD", text)
-        .encode("ascii", "ignore")
-        .decode("ascii")
-        .lower()
-    )
-    value = re.sub(r"[^\w\s-]", "", value)
-    value = re.sub(r"[-\s]+", "-", value)
-    return value.strip("-_")
+def _run_steps(
+    steps: list[JobStep], context: Context, *, dry_run: bool = False, depth: int = 0
+):
+    def log_info(msg: str) -> None:
+        logger.info(indent(msg, "  " * depth))
 
+    for step in steps:
+        step_id = step.id
+        step_desc = f"{primary(step.name)} ({muted(step_id)})"
 
-def _get_step_id(step: JobStep) -> str:
-    if step.id:
-        return step.id
-    # Build a deterministic and non-empty ID from step name.
-    prefix = "auto"
-    slug = _slugify(step.name)
-    suffix = hashlib.sha256(step.name.encode("utf-8")).hexdigest()[:8]
-    return "-".join([prefix, slug, suffix])
+        skip_reason = None
+        if context.has_step_outputs(step_id):
+            skip_reason = "already run"
+        elif step.condition and not evaluate_condition(step.condition, context=context):
+            skip_reason = "condition not met"
+        if skip_reason:
+            log_info(f"○ Skipping step: {step_desc} ({skip_reason})")
+            continue
+
+        log_info(f"● Running step: {step_desc}")
+
+        if step.kind == "StepsAction":
+            _run_steps(step.steps, context, dry_run=dry_run, depth=depth + 1)
+        else:
+            if step.kind == "RunShell":
+                step = step.as_use_action_step()
+            if step.kind != "UseAction":
+                raise SlowhandException(f"Unknown step kind: {step.kind}")
+            action = create_action(step.uses)
+            params = context.resolve(step.params or {})
+            outputs = action.run(params, context=context, dry_run=dry_run)
+            if outputs:
+                log_info(json.dumps(outputs, indent=2))
+            context.save_step_outputs(step_id, outputs)
 
 
 def _run_job_with_context(
@@ -49,39 +62,15 @@ def _run_job_with_context(
             primary(job.name),
             muted(" (dry-run)") if dry_run else "",
         )
-        for step in job.steps:
-            step_id = _get_step_id(step)
-            step_desc = f"{primary(step.name)} ({muted(step_id)})"
-
-            if context.has_step_outputs(step_id):
-                logger.info("○ Skipping step: %s (already run)", step_desc)
-                continue
-
-            if step.kind == "RunShell":
-                # Convert a `RunShell` step to an `actions/shell` action
-                action_name = "actions/shell"
-                params = {
-                    "script": step.run,
-                    "working-dir": step.working_dir,
-                }
-            elif step.kind == "UseAction":
-                action_name = step.uses
-                params = step.params
-            else:
-                raise SlowhandException(f"Unknown step kind: {step.kind}")
-
-            action = create_action(action_name)
-            params = context.resolve(params or {})
-            if step.condition is None or evaluate_condition(
-                step.condition, context=context
-            ):
-                logger.info("● Running step: %s", step_desc)
-                outputs = action.run(params, context=context, dry_run=dry_run)
-                context.save_step_outputs(step_id, outputs)
-            else:
-                logger.info("○ Skipping step: %s", step_desc)
+        _run_steps(job.steps, context, dry_run=dry_run)
 
         logger.info("✓ Job completed successfully.")
+        job_outputs = context.get_outputs()
+        if job_outputs:
+            logger.info("Job outputs:")
+            for name, value in job_outputs.items():
+                logger.info(f"    {name} = {value}")
+
         context.delete_checkpoint()
         if clean and not settings.debug:
             context.teardown()

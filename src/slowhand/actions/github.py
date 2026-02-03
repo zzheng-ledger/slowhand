@@ -53,9 +53,13 @@ class GithubCreatePr(Action):
         else:
             logger.warning("Dry-run: gh pr create ...")
             pr_number = "<NUMBER>"
+
+        pr_link = f"{params.pr_link_prefix}{pr_number}"
+        logger.info("Created PR on Github: %s", pr_link)
+
         return {
             "pr_number": pr_number,
-            "pr_link": f"{params.pr_link_prefix}{pr_number}",
+            "pr_link": pr_link,
         }
 
 

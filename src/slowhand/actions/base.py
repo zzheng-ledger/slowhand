@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from slowhand.context import Context
+from slowhand.context import Context, SimpleValue
 
 ActionParams = dict[str, None | str | int | bool]
 
@@ -11,5 +11,5 @@ class Action(ABC):
     @abstractmethod
     def run(
         self, params: ActionParams, *, context: Context, dry_run: bool
-    ) -> dict[str, str | None]:
+    ) -> dict[str, SimpleValue] | None:
         pass

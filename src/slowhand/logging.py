@@ -22,6 +22,10 @@ def secondary(text: Any) -> str:
     return _apply_style(text, "bright_blue")
 
 
+def notice(text: Any) -> str:
+    return _apply_style(text, "bright_blue")
+
+
 def muted(text: Any) -> str:
     return _apply_style(text, "grey50")
 

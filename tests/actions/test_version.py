@@ -15,7 +15,7 @@ def test_compute_version():
     }
     context = Context("fake-job-id")
     output = action.run(params, context=context, dry_run=False)
-    assert output["result"] == "2.1.12"
+    assert output and output["result"] == "2.1.12"
 
 
 def test_compute_version_without_patch():
@@ -26,7 +26,7 @@ def test_compute_version_without_patch():
     }
     context = Context("fake-job-id")
     output = action.run(params, context=context, dry_run=False)
-    assert output["result"] == "1.2.3"
+    assert output and output["result"] == "1.2.3"
 
 
 def test_patch_number_stays_none():
@@ -37,7 +37,7 @@ def test_patch_number_stays_none():
     }
     context = Context("fake-job-id")
     output = action.run(params, context=context, dry_run=False)
-    assert output["result"] == "1.2"
+    assert output and output["result"] == "1.2"
 
 
 def test_negative_version_component():

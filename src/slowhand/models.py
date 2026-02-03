@@ -1,3 +1,6 @@
+import hashlib
+import re
+import unicodedata
 from typing import Literal, cast
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
@@ -21,6 +24,18 @@ def _str_to_int(s: str) -> int:
         return int(s)
     except ValueError:
         raise ValueError(f"Invalid int value: {s}")
+
+
+def _slugify(text: str) -> str:
+    value = (
+        unicodedata.normalize("NFKD", text)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+    )
+    value = re.sub(r"[^\w\s-]", "", value)
+    value = re.sub(r"[-\s]+", "-", value)
+    return value.strip("-_")
 
 
 class JobInput(BaseModel):
@@ -73,15 +88,19 @@ class JobInput(BaseModel):
 
 
 class BaseJobStep(BaseModel):
-    id: str | None = None
+    provided_id: str | None = Field(None, alias="id")
     name: str
     condition: str | None = Field(None, alias="if")
 
-
-class RunShell(BaseJobStep):
-    kind: Literal["RunShell"] = "RunShell"
-    run: str
-    working_dir: str | None = Field(None, alias="working-dir")
+    @property
+    def id(self) -> str:
+        if self.provided_id:
+            return self.provided_id
+        # Build a deterministic and non-empty ID from step name.
+        prefix = "auto"
+        slug = _slugify(self.name)
+        suffix = hashlib.sha256(self.name.encode("utf-8")).hexdigest()[:8]
+        return "__".join([prefix, slug, suffix])
 
 
 class UseAction(BaseJobStep):
@@ -90,7 +109,31 @@ class UseAction(BaseJobStep):
     params: dict = Field(default_factory=dict, alias="with")
 
 
-JobStep = UseAction | RunShell
+class RunShell(BaseJobStep):
+    kind: Literal["RunShell"] = "RunShell"
+    run: str
+    working_dir: str | None = Field(None, alias="working-dir")
+
+    def as_use_action_step(self) -> UseAction:
+        step_data = {
+            "id": self.provided_id,
+            "name": self.name,
+            "condition": self.condition,
+            "uses": "actions/shell",
+            "with": {
+                "script": self.run,
+                "working-dir": self.working_dir,
+            },
+        }
+        return UseAction(**step_data)
+
+
+class StepsAction(BaseJobStep):
+    kind: Literal["StepsAction"] = "StepsAction"
+    steps: list["JobStep"]
+
+
+JobStep = UseAction | RunShell | StepsAction
 
 
 class Job(BaseModel):
@@ -99,6 +142,14 @@ class Job(BaseModel):
     name: str
     inputs: dict[str, JobInput] = Field(default_factory=dict)
     steps: list[JobStep]
+
+    def validate_steps(self):
+        seen_step_ids = set()
+        for step in self.steps:
+            step_id = step.id
+            if step_id in seen_step_ids:
+                raise SlowhandException(f"Duplicated step ID: {step_id}")
+            seen_step_ids.add(step_id)
 
     def parse_inputs(self, input_data: dict[str, str]) -> dict[str, InputValue | None]:
         # First, make sure all provided inputs are known to the job.
