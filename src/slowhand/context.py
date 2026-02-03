@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Self, TypeAlias
 
 from slowhand.config import ensure_app_user_dir
 from slowhand.errors import SlowhandException
@@ -14,7 +14,15 @@ from slowhand.utils import random_name
 logger = get_logger(__name__)
 
 # Format is `${{ foo.bar }}` to be distinguished from a normal shell variable (`$foobar`).
-VARIABLE_REGEX = re.compile(r"\${{\s*([\w\-]+(?:\.[\w\-]+)+)\s*}}")
+_VAR_REGEX = re.compile(r"\${{([^}]+)}}")
+
+_VAR_NAME_REGEX = re.compile(
+    r"^(?:"
+    r"meta\.[\w-]+"
+    r"|inputs\.[\w-]+"
+    r"|steps\.[\w-]+\.outputs\.[\w-]+"
+    r")$"
+)
 
 _META_JOB_ID = "meta.job_id"
 _META_RUN_ID = "meta.run_id"
@@ -22,41 +30,46 @@ _META_RUN_DIR = "meta.run_dir"
 _META_START_TIME = "meta.start_time"
 
 
-def _split_var_name(var_name: str) -> tuple[list[str], str]:
+def _split_name(var_name: str) -> tuple[list[str], str]:
     tokens = var_name.split(".")
     if not tokens:
         raise SlowhandException(f"Invalid variable name: {var_name}")
     return tokens[:-1], tokens[-1]
 
 
-def _set_variable(store: dict, var_name: str, value: Any) -> None:
-    parent_keys, leaf_key = _split_var_name(var_name)
-    current = store
+StateValue: TypeAlias = str | bool | int | None | dict[str, "StateValue"]
+StateStore: TypeAlias = dict[str, StateValue]
+
+
+def _set_state_value(state: StateStore, name: str, value: StateValue) -> None:
+    parent_keys, leaf_key = _split_name(name)
+    current: StateStore = state
     for key in parent_keys:
-        current = current.setdefault(key, {})
-        if not isinstance(current, dict):
+        node = current.setdefault(key, {})
+        if not isinstance(node, dict):
             raise SlowhandException(
                 f"Invalid value type at {key}: {type(current).__name__}"
             )
+        current = node
     current[leaf_key] = value
 
 
-def _get_variable(store: dict, var_name: str) -> dict | str | bool | int | None:
-    parent_keys, leaf_key = _split_var_name(var_name)
-    current: dict = store
+def _get_state_value(state: StateStore, name: str) -> StateValue:
+    parent_keys, leaf_key = _split_name(name)
+    current: StateStore = state
     for key in parent_keys:
-        next_value = current.get(key)
-        if next_value is None:
+        node = current.get(key)
+        if node is None:
             return None
-        if not isinstance(next_value, dict):
+        if not isinstance(node, dict):
             raise SlowhandException(
                 f"Invalid value type at {key}: {type(current).__name__}"
             )
-        current = next_value
+        current = node
     value = current.get(leaf_key)
     if not isinstance(value, (dict, str, bool, int, type(None))):
         raise SlowhandException(
-            f"Variable resolves to invalid type ({type(value).__name__}): {var_name}"
+            f"Variable resolves to invalid type ({type(value).__name__}): {name}"
         )
     return value
 
@@ -66,16 +79,19 @@ def _get_checkpoint_file() -> Path:
 
 
 class Context:
-    def __init__(self, job_id: str, *, state: dict[str, Any] | None = None) -> None:
+    def __init__(self, job_id: str, *, state: StateStore | None = None) -> None:
         if state is None:
             state = {}
-            _set_variable(state, _META_JOB_ID, job_id)
-            _set_variable(state, _META_RUN_ID, random_name("run"))
-            _set_variable(state, _META_RUN_DIR, tempfile.mkdtemp(prefix="slowhand_"))
-            _set_variable(state, _META_START_TIME, datetime.now().isoformat())
-        for var_name in (_META_JOB_ID, _META_RUN_ID, _META_RUN_DIR, _META_START_TIME):
-            if _get_variable(state, var_name) is None:
-                raise SlowhandException("Invalid state: missing required variable(s)")
+            _set_state_value(state, _META_JOB_ID, job_id)
+            _set_state_value(state, _META_RUN_ID, random_name("run"))
+            _set_state_value(state, _META_RUN_DIR, tempfile.mkdtemp(prefix="slowhand_"))
+            _set_state_value(state, _META_START_TIME, datetime.now().isoformat())
+        for meta_name in (_META_JOB_ID, _META_RUN_ID, _META_RUN_DIR, _META_START_TIME):
+            meta_value = _get_state_value(state, meta_name)
+            if not isinstance(meta_value, str) or not meta_value:
+                raise SlowhandException(
+                    f"Invalid state: missing required meta variable: {meta_name}"
+                )
         self._state = state
 
     @property
@@ -96,23 +112,20 @@ class Context:
         return datetime.fromisoformat(value)
 
     def has_step_outputs(self, step_id: str) -> bool:
-        outputs = _get_variable(self._state, f"steps.{step_id}.outputs")
+        outputs = _get_state_value(self._state, f"steps.{step_id}.outputs")
         return outputs is not None
 
     def save_inputs(self, inputs: dict[str, Any]) -> None:
         logger.debug("Saving inputs", extra=inputs)
-        _set_variable(self._state, "inputs", inputs)
+        _set_state_value(self._state, "inputs", inputs)
 
     def save_step_outputs(self, step_id: str, outputs: dict[str, Any]) -> None:
         logger.debug("Saving step outputs of %s", step_id, extra=outputs)
-        _set_variable(self._state, f"steps.{step_id}.outputs", outputs)
+        _set_state_value(self._state, f"steps.{step_id}.outputs", outputs)
 
     def resolve(self, input: Any) -> Any:
         if isinstance(input, str):
-            return VARIABLE_REGEX.sub(
-                lambda m: self.resolve_variable(m.group(1)),
-                input,
-            )
+            return _VAR_REGEX.sub(lambda m: self.resolve_variable(m.group(1)), input)
         if isinstance(input, dict):
             return dict((key, self.resolve(value)) for key, value in input.items())
         if isinstance(input, list):
@@ -120,7 +133,10 @@ class Context:
         return input
 
     def resolve_variable(self, var_name: str) -> str:
-        value = _get_variable(self._state, var_name)
+        var_name = var_name.strip()
+        if not _VAR_NAME_REGEX.match(var_name):
+            raise SlowhandException(f"Invalid variable name: {var_name}")
+        value = _get_state_value(self._state, var_name)
         return str(value) if value is not None else ""
 
     def dump_state_json(self) -> str:

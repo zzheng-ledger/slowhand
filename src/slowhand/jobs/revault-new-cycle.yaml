@@ -10,33 +10,35 @@ steps:
       new-branch: chore-revault-new-cycle
 
   - name: Find revault deploy versions
-    id: revault_deploy_versions
+    id: deploy_versions
     uses: actions/revault-find-deploy-versions
     with:
       sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
 
   - name: Abort if precondition is not met
-    if: revault_deploy_versions.stg != revault_deploy_versions.ppr || revault_deploy_versions.stg != revault_deploy_versions.prd
+    if: >
+      steps.deploy_versions.outputs.stg == steps.deploy_versions.outputs.ppr
+      || steps.deploy_versions.outputs.stg == steps.deploy_versions.outputs.prd
     uses: actions/abort
     with:
       message: |
         Revault versions do not match:
-        - stg : ${{ steps.revault_deploy_versions.outputs.stg }}
-        - ppr : ${{ steps.revault_deploy_versions.outputs.ppr }}
-        - prd : ${{ steps.revault_deploy_versions.outputs.prd }}
+        - stg : ${{ steps.deploy_versions.outputs.stg }}
+        - ppr : ${{ steps.deploy_versions.outputs.ppr }}
+        - prd : ${{ steps.deploy_versions.outputs.prd }}
 
   - name: Compute next version
     id: revault_next_version
     uses: actions/compute-version
     with:
-      input: ${{ steps.revault_deploy_versions.outputs.stg }}
+      input: ${{ steps.deploy_versions.outputs.stg }}
       add-minor: 1
 
   - name: Create new revault value file
     id: revault_new_cycle
     run: |
       releases_dir="deploy/platform-2220-cluster/applications/vault/releases"
-      old_version="${{ steps.revault_deploy_versions.outputs.stg }}"
+      old_version="${{ steps.deploy_versions.outputs.stg }}"
       new_version="${{ steps.revault_next_version.outputs.result }}"
       echo "Copying version: ${old_version} => ${new_version}"
       cp "${releases_dir}/revault-${old_version}.yaml" "${releases_dir}/revault-${new_version}.yaml"
