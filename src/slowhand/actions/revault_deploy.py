@@ -40,7 +40,7 @@ def get_deploy_yaml_files(
     if target_env == "stg":
         yaml_files = {
             "next": non_prod_dir / "next.yaml",
-            "qa": non_prod_dir / "qa.yaml",
+            "load": non_prod_dir / "load.yaml",
             "ppr2": non_prod_dir / "ppr2.yaml",
         }
     elif target_env == "ppr":

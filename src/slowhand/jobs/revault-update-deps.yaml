@@ -1,4 +1,4 @@
-name: Prepare revault stg (next, qa, ppr2)
+name: Update revault dependencies to latest version
 
 inputs:
   pin:

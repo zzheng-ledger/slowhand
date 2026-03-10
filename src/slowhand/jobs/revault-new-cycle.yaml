@@ -1,4 +1,4 @@
-name: Prepare revault stg (next, qa, ppr2)
+name: Prepare revault stg (next, load, ppr2)
 
 steps:
   - name: "sre-argocd: clone and checkout new branch"
