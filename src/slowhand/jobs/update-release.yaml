@@ -1,0 +1,52 @@
+name: Update revault release value file
+
+inputs:
+  version:
+    type: string
+    required: true
+    description: Release version to patch (e.g. 1.32)
+
+steps:
+  - name: Validate version format
+    run: |
+      if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        echo "Invalid version '${{ inputs.version }}': expected format X.Y (e.g. 1.32)" >&2
+        exit 1
+      fi
+
+  - name: "revault: clone"
+    id: revault_repo
+    uses: actions/git-clone
+    with:
+      repo: LedgerHQ/revault
+      fetch-depth: 1
+
+  - name: "sre-argocd: clone and checkout new branch"
+    id: sre_argocd_repo
+    uses: actions/git-clone
+    with:
+      repo: LedgerHQ/sre-argocd
+      fetch-depth: 1
+      new-branch: chore-revault-update-release-${{ inputs.version }}
+
+  - name: Patch revault release file
+    uses: actions/revault-patch-release-file
+    with:
+      sre-argocd-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      revault-dir: ${{ steps.revault_repo.outputs.repo_dir }}
+      version: ${{ inputs.version }}
+
+  - name: Commit and push
+    uses: actions/git-commit-push-branch
+    with:
+      repo-dir: ${{ steps.sre_argocd_repo.outputs.repo_dir }}
+      branch: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      message: "chore(revault): patch release value file (${{ inputs.version }})"
+
+  - name: Create a PR in sre-argocd
+    uses: actions/github-create-pr
+    with:
+      repo: LedgerHQ/sre-argocd
+      head: ${{ steps.sre_argocd_repo.outputs.new_branch }}
+      base: main
+      title: "chore(revault): patch release value file (${{ inputs.version }})"
