@@ -6,7 +6,11 @@ from .git import GitClone, GitCommitPushBranch
 from .github import GithubCreatePr, GithubEditPr
 from .jira import JiraCreateMoTicket
 from .print import Print
-from .revault_deploy import RevaultFindDeployVersions, RevaultUpdateDeployVersions
+from .revault_deploy import (
+    RevaultFindDeployVersions,
+    RevaultPatchReleaseFile,
+    RevaultUpdateDeployVersions,
+)
 from .revault_deps import RevaultRevertMobileDeps, RevaultRevertPinnedDeps
 from .setup import SetupGh, SetupGit, SetupJira, SetupJobsDirs
 from .shell import Shell
@@ -27,6 +31,7 @@ _BUILTIN_ACTIONS: dict[str, type[Action]] = {
         JiraCreateMoTicket,
         Print,
         RevaultFindDeployVersions,
+        RevaultPatchReleaseFile,
         RevaultUpdateDeployVersions,
         RevaultRevertMobileDeps,
         RevaultRevertPinnedDeps,
